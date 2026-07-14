@@ -460,6 +460,20 @@
   }
   .print-unit { font-size: 11px; color: var(--slate); font-weight: 700; }
 
+
+  .google-sync-panel{margin-top:10px;border:1px solid var(--border);border-radius:8px;background:#fff;overflow:hidden}
+  .google-sync-toggle{width:100%;padding:10px 12px;border:0;background:#fff;font:700 11px inherit;color:var(--slate);cursor:pointer;text-align:left}
+  .google-sync-body{display:none;padding:0 12px 12px}
+  .google-sync-panel.open .google-sync-body{display:block}
+  .google-sync-field{display:block;margin:8px 0}
+  .google-sync-field span{display:block;font-size:10px;font-weight:700;color:var(--slate);margin-bottom:3px}
+  .google-sync-field input,.google-sync-field select{width:100%;padding:7px 8px;border:1px solid var(--border);border-radius:6px;font:12px inherit}
+  .google-sync-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .google-sync-actions button{flex:1;min-width:130px;padding:8px;border:1px solid var(--border);border-radius:6px;background:#f4fbfd;font:700 11px inherit;cursor:pointer}
+  .google-sync-actions .primary{border:0;color:#fff;background:linear-gradient(135deg,#4285f4,#34a853)}
+  .google-sync-msg{min-height:14px;margin-top:8px;text-align:center;font-size:10px;color:var(--slate)}
+  .google-sync-msg.ok{color:#1a9e8f}.google-sync-msg.err{color:#c0524a}
+
   /* GitHub sync panel */
   .sync-panel {
     margin-top: 10px;
@@ -743,6 +757,7 @@ if (!window.storage) {
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="週間プランナー2">
 
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
   <div class="sheet">
@@ -864,6 +879,32 @@ if (!window.storage) {
           <button id="btnForget" class="danger">接続を解除</button>
         </div>
         <div class="sync-msg" id="syncMsg"></div>
+      </div>
+    </div>
+
+
+    <div class="google-sync-panel">
+      <button class="google-sync-toggle" id="googleSyncToggle">Googleカレンダー連携 ▾</button>
+      <div class="google-sync-body">
+        <p style="font-size:10px;line-height:1.6;color:#8a9ba3;margin:0 0 8px">
+          週間プランナーの予定をGoogleカレンダーへ追加・更新します。
+        </p>
+        <label class="google-sync-field">
+          <span>Google OAuth クライアントID</span>
+          <input id="googleClientId" type="text" placeholder="xxxx.apps.googleusercontent.com">
+        </label>
+        <label class="google-sync-field">
+          <span>同期期間</span>
+          <select id="googleSyncRange">
+            <option value="week">表示中の1週間</option>
+            <option value="year">表示中の週から1年間</option>
+          </select>
+        </label>
+        <div class="google-sync-actions">
+          <button id="googleConnectBtn">Googleに接続</button>
+          <button id="googleSyncBtn" class="primary">Googleカレンダーへ同期</button>
+        </div>
+        <div id="googleSyncMsg" class="google-sync-msg"></div>
       </div>
     </div>
 
@@ -1537,6 +1578,122 @@ if (!window.storage) {
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') autoPullIfReady();
     });
+
+
+    // ===== Google Calendar one-way sync =====
+    const GOOGLE_CFG_KEY='planner-google-calendar-cfg-v1';
+    const GOOGLE_SCOPE='https://www.googleapis.com/auth/calendar.events';
+    let googleTokenClient=null;
+    let googleAccessToken='';
+
+    function gmsg(t,k=''){
+      const e=document.getElementById('googleSyncMsg');
+      e.textContent=t;e.className='google-sync-msg'+(k?' '+k:'');
+    }
+    function saveGoogleClientId(){
+      localStorage.setItem(GOOGLE_CFG_KEY,document.getElementById('googleClientId').value.trim());
+    }
+    function loadGoogleClientId(){
+      document.getElementById('googleClientId').value=localStorage.getItem(GOOGLE_CFG_KEY)||'';
+    }
+    function initGoogle(){
+      saveGoogleClientId();
+      const clientId=document.getElementById('googleClientId').value.trim();
+      if(!clientId){gmsg('OAuthクライアントIDを入力してください','err');return false}
+      if(!window.google||!google.accounts||!google.accounts.oauth2){gmsg('Google認証を読み込めません','err');return false}
+      googleTokenClient=google.accounts.oauth2.initTokenClient({
+        client_id:clientId,
+        scope:GOOGLE_SCOPE,
+        callback:()=>{}
+      });
+      return true;
+    }
+    function authGoogle(){
+      return new Promise((resolve,reject)=>{
+        if(!initGoogle()){reject(new Error('Google認証の初期化に失敗しました'));return}
+        googleTokenClient.callback=r=>{
+          if(r.error){reject(new Error(r.error));return}
+          googleAccessToken=r.access_token;resolve(r.access_token);
+        };
+        googleTokenClient.requestAccessToken({prompt:googleAccessToken?'':'consent'});
+      });
+    }
+    function addDays2(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x}
+    function dkey(d){return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}
+    function collectGoogleEvents(){
+      const start=new Date(currentWeekStart+'T00:00:00');
+      const days=document.getElementById('googleSyncRange').value==='year'?365:7;
+      const end=addDays2(start,days);
+      const out=[];
+      for(let d=new Date(start);d<end;d=addDays2(d,1)){
+        const monday=getMondayOf(dkey(d));
+        const weekKey=fmtDateInput(monday);
+        const idx=(d.getDay()+6)%7;
+        const w=weeksDB[weekKey];
+        if(!w||!w.days||!w.days[idx])continue;
+        const schedule=String(w.days[idx].schedule||'').trim();
+        if(!schedule)continue;
+        const summary=schedule.split(/\r?\n/).find(Boolean)||'予定';
+        out.push({date:dkey(d),summary:summary.slice(0,120),description:schedule,key:'route-'+dkey(d)});
+      }
+      return out;
+    }
+    async function gapi(url,opt={}){
+      const r=await fetch(url,{...opt,headers:{Authorization:'Bearer '+googleAccessToken,'Content-Type':'application/json',...(opt.headers||{})}});
+      if(!r.ok)throw new Error('Google Calendar API エラー '+r.status);
+      return r.status===204?null:r.json();
+    }
+    async function existingManaged(start,end){
+      const q=new URLSearchParams({
+        timeMin:start.toISOString(),timeMax:end.toISOString(),singleEvents:'true',
+        privateExtendedProperty:'routePlannerManaged=true',maxResults:'2500'
+      });
+      const data=await gapi('https://www.googleapis.com/calendar/v3/calendars/primary/events?'+q);
+      return data.items||[];
+    }
+    async function syncGoogle(){
+      try{
+        gmsg('同期準備中…');
+        if(!googleAccessToken)await authGoogle();
+        const items=collectGoogleEvents();
+        if(!items.length){gmsg('同期する予定がありません','err');return}
+        const start=new Date(items[0].date+'T00:00:00');
+        const end=addDays2(new Date(items[items.length-1].date+'T00:00:00'),2);
+        const existing=await existingManaged(start,end);
+        const map=new Map();
+        existing.forEach(e=>{
+          const k=e.extendedProperties&&e.extendedProperties.private&&e.extendedProperties.private.routePlannerKey;
+          if(k)map.set(k,e);
+        });
+        let add=0,upd=0;
+        for(const item of items){
+          const body={
+            summary:item.summary,
+            description:item.description+'\n\n週間プランナーから同期',
+            start:{date:item.date},
+            end:{date:dkey(addDays2(new Date(item.date+'T00:00:00'),1))},
+            extendedProperties:{private:{routePlannerManaged:'true',routePlannerKey:item.key}}
+          };
+          const old=map.get(item.key);
+          if(old){
+            await gapi('https://www.googleapis.com/calendar/v3/calendars/primary/events/'+encodeURIComponent(old.id),{method:'PATCH',body:JSON.stringify(body)});
+            upd++;
+          }else{
+            await gapi('https://www.googleapis.com/calendar/v3/calendars/primary/events',{method:'POST',body:JSON.stringify(body)});
+            add++;
+          }
+        }
+        gmsg(`同期完了：新規${add}件、更新${upd}件`,'ok');
+      }catch(e){console.error(e);gmsg(e.message||'同期に失敗しました','err')}
+    }
+    document.getElementById('googleSyncToggle').onclick=()=>document.querySelector('.google-sync-panel').classList.toggle('open');
+    document.getElementById('googleClientId').addEventListener('input',saveGoogleClientId);
+    document.getElementById('googleConnectBtn').onclick=async()=>{
+      try{gmsg('接続中…');await authGoogle();gmsg('Googleに接続しました','ok')}
+      catch(e){gmsg(e.message||'接続に失敗しました','err')}
+    };
+    document.getElementById('googleSyncBtn').onclick=syncGoogle;
+    loadGoogleClientId();
 
     initializePlanner();
   </script>
