@@ -1580,27 +1580,59 @@ if (!window.storage) {
     });
 
 
-    // ===== Google Calendar one-way sync =====
+    // ===== Google Calendar one-way sync + 30-second auto sync =====
     const GOOGLE_CFG_KEY='planner-google-calendar-cfg-v1';
     const GOOGLE_SCOPE='https://www.googleapis.com/auth/calendar.events';
+    const GOOGLE_AUTO_SYNC_MS=30000;
+
     let googleTokenClient=null;
     let googleAccessToken='';
+    let googleTokenExpiresAt=0;
+    let googleSyncInProgress=false;
+    let googleAutoSyncTimer=null;
+    let googleReconnectNoticeShown=false;
 
     function gmsg(t,k=''){
       const e=document.getElementById('googleSyncMsg');
-      e.textContent=t;e.className='google-sync-msg'+(k?' '+k:'');
+      e.textContent=t;
+      e.className='google-sync-msg'+(k?' '+k:'');
     }
+
     function saveGoogleClientId(){
-      localStorage.setItem(GOOGLE_CFG_KEY,document.getElementById('googleClientId').value.trim());
+      localStorage.setItem(
+        GOOGLE_CFG_KEY,
+        document.getElementById('googleClientId').value.trim()
+      );
     }
+
     function loadGoogleClientId(){
-      document.getElementById('googleClientId').value=localStorage.getItem(GOOGLE_CFG_KEY)||'';
+      document.getElementById('googleClientId').value=
+        localStorage.getItem(GOOGLE_CFG_KEY)||'';
     }
+
+    function hasValidGoogleToken(){
+      return !!googleAccessToken && Date.now() < googleTokenExpiresAt;
+    }
+
+    function clearGoogleToken(){
+      googleAccessToken='';
+      googleTokenExpiresAt=0;
+    }
+
     function initGoogle(){
       saveGoogleClientId();
       const clientId=document.getElementById('googleClientId').value.trim();
-      if(!clientId){gmsg('OAuthクライアントIDを入力してください','err');return false}
-      if(!window.google||!google.accounts||!google.accounts.oauth2){gmsg('Google認証を読み込めません','err');return false}
+
+      if(!clientId){
+        gmsg('OAuthクライアントIDを入力してください','err');
+        return false;
+      }
+
+      if(!window.google||!google.accounts||!google.accounts.oauth2){
+        gmsg('Google認証を読み込めません。通信状態を確認してください','err');
+        return false;
+      }
+
       googleTokenClient=google.accounts.oauth2.initTokenClient({
         client_id:clientId,
         scope:GOOGLE_SCOPE,
@@ -1608,92 +1640,273 @@ if (!window.storage) {
       });
       return true;
     }
+
     function authGoogle(){
       return new Promise((resolve,reject)=>{
-        if(!initGoogle()){reject(new Error('Google認証の初期化に失敗しました'));return}
+        if(!initGoogle()){
+          reject(new Error('Google認証の初期化に失敗しました'));
+          return;
+        }
+
         googleTokenClient.callback=r=>{
-          if(r.error){reject(new Error(r.error));return}
-          googleAccessToken=r.access_token;resolve(r.access_token);
+          if(r.error){
+            clearGoogleToken();
+            reject(new Error(r.error));
+            return;
+          }
+
+          googleAccessToken=r.access_token;
+          const expiresIn=Math.max(60,Number(r.expires_in)||3600);
+          googleTokenExpiresAt=Date.now()+(expiresIn*1000)-60000;
+          googleReconnectNoticeShown=false;
+          resolve(r.access_token);
         };
-        googleTokenClient.requestAccessToken({prompt:googleAccessToken?'':'consent'});
+
+        // Googleの仕様上、初回接続や期限切れ後の再接続には
+        // ユーザー操作が必要です。
+        googleTokenClient.requestAccessToken({
+          prompt:hasValidGoogleToken()?'':'consent'
+        });
       });
     }
-    function addDays2(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x}
-    function dkey(d){return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}
+
+    function addDays2(d,n){
+      const x=new Date(d);
+      x.setDate(x.getDate()+n);
+      return x;
+    }
+
+    function dkey(d){
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    }
+
     function collectGoogleEvents(){
       const start=new Date(currentWeekStart+'T00:00:00');
       const days=document.getElementById('googleSyncRange').value==='year'?365:7;
       const end=addDays2(start,days);
       const out=[];
+
       for(let d=new Date(start);d<end;d=addDays2(d,1)){
         const monday=getMondayOf(dkey(d));
         const weekKey=fmtDateInput(monday);
         const idx=(d.getDay()+6)%7;
         const w=weeksDB[weekKey];
-        if(!w||!w.days||!w.days[idx])continue;
+
+        if(!w||!w.days||!w.days[idx]) continue;
+
         const schedule=String(w.days[idx].schedule||'').trim();
-        if(!schedule)continue;
+        if(!schedule) continue;
+
         const summary=schedule.split(/\r?\n/).find(Boolean)||'予定';
-        out.push({date:dkey(d),summary:summary.slice(0,120),description:schedule,key:'route-'+dkey(d)});
+        out.push({
+          date:dkey(d),
+          summary:summary.slice(0,120),
+          description:schedule,
+          key:'route-'+dkey(d)
+        });
       }
       return out;
     }
+
     async function gapi(url,opt={}){
-      const r=await fetch(url,{...opt,headers:{Authorization:'Bearer '+googleAccessToken,'Content-Type':'application/json',...(opt.headers||{})}});
-      if(!r.ok)throw new Error('Google Calendar API エラー '+r.status);
+      const r=await fetch(url,{
+        ...opt,
+        headers:{
+          Authorization:'Bearer '+googleAccessToken,
+          'Content-Type':'application/json',
+          ...(opt.headers||{})
+        }
+      });
+
+      if(!r.ok){
+        const err=new Error('Google Calendar API エラー '+r.status);
+        err.status=r.status;
+        throw err;
+      }
+
       return r.status===204?null:r.json();
     }
+
     async function existingManaged(start,end){
       const q=new URLSearchParams({
-        timeMin:start.toISOString(),timeMax:end.toISOString(),singleEvents:'true',
-        privateExtendedProperty:'routePlannerManaged=true',maxResults:'2500'
+        timeMin:start.toISOString(),
+        timeMax:end.toISOString(),
+        singleEvents:'true',
+        privateExtendedProperty:'routePlannerManaged=true',
+        maxResults:'2500'
       });
-      const data=await gapi('https://www.googleapis.com/calendar/v3/calendars/primary/events?'+q);
+
+      const data=await gapi(
+        'https://www.googleapis.com/calendar/v3/calendars/primary/events?'+q
+      );
       return data.items||[];
     }
-    async function syncGoogle(){
+
+    async function syncGoogle(options={}){
+      const {auto=false}=options;
+
+      if(googleSyncInProgress) return false;
+      if(!navigator.onLine){
+        if(!auto) gmsg('オフラインのため同期できません','err');
+        return false;
+      }
+
+      if(!hasValidGoogleToken()){
+        if(auto){
+          if(!googleReconnectNoticeShown){
+            gmsg('Google自動同期待機中：Googleに再接続してください','err');
+            googleReconnectNoticeShown=true;
+          }
+          return false;
+        }
+        await authGoogle();
+      }
+
+      googleSyncInProgress=true;
+
       try{
-        gmsg('同期準備中…');
-        if(!googleAccessToken)await authGoogle();
+        if(!auto) gmsg('同期準備中…');
+
         const items=collectGoogleEvents();
-        if(!items.length){gmsg('同期する予定がありません','err');return}
+        const checkedAt=new Date().toLocaleTimeString('ja-JP');
+
+        if(!items.length){
+          gmsg(`Google接続済み・同期対象なし（最終確認 ${checkedAt}）`,'ok');
+          return true;
+        }
+
         const start=new Date(items[0].date+'T00:00:00');
-        const end=addDays2(new Date(items[items.length-1].date+'T00:00:00'),2);
+        const end=addDays2(
+          new Date(items[items.length-1].date+'T00:00:00'),
+          2
+        );
+
         const existing=await existingManaged(start,end);
         const map=new Map();
+
         existing.forEach(e=>{
-          const k=e.extendedProperties&&e.extendedProperties.private&&e.extendedProperties.private.routePlannerKey;
-          if(k)map.set(k,e);
+          const k=e.extendedProperties
+            &&e.extendedProperties.private
+            &&e.extendedProperties.private.routePlannerKey;
+          if(k) map.set(k,e);
         });
-        let add=0,upd=0;
+
+        let add=0;
+        let upd=0;
+
         for(const item of items){
           const body={
             summary:item.summary,
             description:item.description+'\n\n週間プランナーから同期',
             start:{date:item.date},
             end:{date:dkey(addDays2(new Date(item.date+'T00:00:00'),1))},
-            extendedProperties:{private:{routePlannerManaged:'true',routePlannerKey:item.key}}
+            extendedProperties:{
+              private:{
+                routePlannerManaged:'true',
+                routePlannerKey:item.key
+              }
+            }
           };
+
           const old=map.get(item.key);
+
           if(old){
-            await gapi('https://www.googleapis.com/calendar/v3/calendars/primary/events/'+encodeURIComponent(old.id),{method:'PATCH',body:JSON.stringify(body)});
+            await gapi(
+              'https://www.googleapis.com/calendar/v3/calendars/primary/events/'
+              +encodeURIComponent(old.id),
+              {method:'PATCH',body:JSON.stringify(body)}
+            );
             upd++;
           }else{
-            await gapi('https://www.googleapis.com/calendar/v3/calendars/primary/events',{method:'POST',body:JSON.stringify(body)});
+            await gapi(
+              'https://www.googleapis.com/calendar/v3/calendars/primary/events',
+              {method:'POST',body:JSON.stringify(body)}
+            );
             add++;
           }
         }
-        gmsg(`同期完了：新規${add}件、更新${upd}件`,'ok');
-      }catch(e){console.error(e);gmsg(e.message||'同期に失敗しました','err')}
+
+        const mode=auto?'自動同期':'同期';
+        gmsg(
+          `${mode}完了：新規${add}件、更新${upd}件（${checkedAt}）`,
+          'ok'
+        );
+        return true;
+
+      }catch(e){
+        console.error(e);
+
+        if(e.status===401||e.status===403){
+          clearGoogleToken();
+          googleReconnectNoticeShown=true;
+          gmsg('Googleの接続期限が切れました。「Googleに接続」を押してください','err');
+        }else{
+          gmsg(e.message||'同期に失敗しました','err');
+        }
+        return false;
+
+      }finally{
+        googleSyncInProgress=false;
+      }
     }
-    document.getElementById('googleSyncToggle').onclick=()=>document.querySelector('.google-sync-panel').classList.toggle('open');
-    document.getElementById('googleClientId').addEventListener('input',saveGoogleClientId);
-    document.getElementById('googleConnectBtn').onclick=async()=>{
-      try{gmsg('接続中…');await authGoogle();gmsg('Googleに接続しました','ok')}
-      catch(e){gmsg(e.message||'接続に失敗しました','err')}
+
+    async function autoSyncGoogleIfReady(){
+      if(document.visibilityState==='hidden') return;
+      if(!navigator.onLine||googleSyncInProgress) return;
+
+      const clientId=document.getElementById('googleClientId').value.trim();
+      if(!clientId) return;
+
+      await syncGoogle({auto:true});
+    }
+
+    function startGoogleAutoSync(){
+      if(googleAutoSyncTimer) clearInterval(googleAutoSyncTimer);
+      googleAutoSyncTimer=setInterval(
+        autoSyncGoogleIfReady,
+        GOOGLE_AUTO_SYNC_MS
+      );
+
+      // ページ表示後、Google接続済みならすぐ同期
+      setTimeout(autoSyncGoogleIfReady,1500);
+    }
+
+    document.getElementById('googleSyncToggle').onclick=()=>{
+      document.querySelector('.google-sync-panel').classList.toggle('open');
     };
-    document.getElementById('googleSyncBtn').onclick=syncGoogle;
+
+    document.getElementById('googleClientId').addEventListener('input',()=>{
+      saveGoogleClientId();
+      clearGoogleToken();
+      googleReconnectNoticeShown=false;
+      gmsg('クライアントIDを保存しました。Googleに接続してください');
+    });
+
+    document.getElementById('googleConnectBtn').onclick=async()=>{
+      try{
+        gmsg('接続中…');
+        await authGoogle();
+        gmsg('Googleに接続しました。自動同期を開始します','ok');
+        await syncGoogle({auto:true});
+      }catch(e){
+        gmsg(e.message||'接続に失敗しました','err');
+      }
+    };
+
+    document.getElementById('googleSyncBtn').onclick=()=>{
+      syncGoogle({auto:false});
+    };
+
+    window.addEventListener('online',autoSyncGoogleIfReady);
+    window.addEventListener('focus',autoSyncGoogleIfReady);
+    document.addEventListener('visibilitychange',()=>{
+      if(document.visibilityState==='visible'){
+        autoSyncGoogleIfReady();
+      }
+    });
+
     loadGoogleClientId();
+    startGoogleAutoSync();
 
     initializePlanner();
   </script>
