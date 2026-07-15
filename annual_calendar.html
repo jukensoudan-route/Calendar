@@ -138,8 +138,8 @@ main{max-width:1500px;margin:auto;padding:14px}
 <header>
   <div class="header-row">
     <div>
-      <h1>2026年 年間カレンダー</h1>
-      <div class="sub">週間プランナー2の予定と同じGitHub Gistで自動同期</div>
+      <h1 id="annualTitle">2026年 年間カレンダー</h1>
+      <div class="sub">週間カレンダーの予定と同じGitHub Gistで自動同期</div>
       <div id="yearNav" style="margin-top:10px;display:flex;align-items:center;gap:18px;">
         <button id="prevYearBtn"></button>
         <div id="currentYearLabel" style="font-size:20px;font-weight:800;color:#16323e;"></div>
@@ -147,7 +147,8 @@ main{max-width:1500px;margin:auto;padding:14px}
       </div>
     </div>
     <div class="actions">
-      <a class="btn" href="./">週間プランナー2へ戻る</a>
+      <a class="btn" href="./">週間カレンダー</a>
+      <a class="btn" href="monthly_calendar.html">月間カレンダー</a>
       <button id="todayBtn">今日</button>
       <button id="reloadBtn">最新を読込</button>
       <button id="printBtn">印刷</button>
@@ -218,7 +219,7 @@ function headers(){
 async function pull(){
   if(syncing)return;
   if(!ghCfg.token||!ghCfg.gistId){
-    setStatus('週間プランナー2でGitHubトークンとGist IDを設定してください','err');
+    setStatus('週間カレンダーでGitHubトークンとGist IDを設定してください','err');
     render(); return;
   }
   syncing=true;setStatus('クラウドから最新予定を読み込んでいます…','syncing');
@@ -242,7 +243,7 @@ async function pull(){
 async function push(){
   if(!ghCfg.token||!ghCfg.gistId){setStatus('GitHub接続情報がありません','err');return}
   syncing=true;setStatus('保存して同期しています…','syncing');
-  const body={description:'進路相談室 ROUTE - 別ユーザー用週間プランナー2 データ',public:false,files:{
+  const body={description:'進路相談室 ROUTE - 別ユーザー用週間カレンダー データ',public:false,files:{
     [GIST_FILE]:{content:JSON.stringify({version:2,updatedAt:new Date().toISOString(),weeks:weeksDB,todos:todosDB},null,2)}
   }};
   try{
@@ -297,15 +298,19 @@ document.getElementById('saveBtn').onclick=async()=>{
 document.getElementById('reloadBtn').onclick=pull;
 document.getElementById('todayBtn').onclick=()=>{
   const now=new Date();
-  if(now.getFullYear()!==YEAR){
-    alert('表示中の年間カレンダーには今日の日付がありません。');
-    return;
-  }
-  const el=[...document.querySelectorAll('.day.today')][0];
-  if(el){
-    el.scrollIntoView({behavior:'smooth',block:'center'});
-    el.animate([{transform:'scale(1)'},{transform:'scale(1.04)'},{transform:'scale(1)'}],{duration:500});
-  }
+  YEAR=now.getFullYear();
+  updateYearHeader();
+  render();
+  requestAnimationFrame(()=>{
+    const el=document.querySelector('.day.today');
+    if(el){
+      el.scrollIntoView({behavior:'smooth',block:'center'});
+      el.animate(
+        [{transform:'scale(1)'},{transform:'scale(1.04)'},{transform:'scale(1)'}],
+        {duration:500}
+      );
+    }
+  });
 };
 
 window.addEventListener('focus',()=>{if(navigator.onLine)pull()});
@@ -314,7 +319,7 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 
 function renderPrintCalendar(){
   const root=document.getElementById('printCalendar');
-  root.innerHTML='<div class="excel-title">2026年　カレンダー</div>';
+  root.innerHTML='<div class="excel-title">'+YEAR+'年　カレンダー</div>';
   const grid=document.createElement('div');
   grid.className='excel-year-grid';
 
@@ -366,6 +371,9 @@ function updateYearHeader(){
  document.getElementById('prevYearBtn').textContent='◀ '+(YEAR-1);
  document.getElementById('currentYearLabel').textContent=YEAR+'年';
  document.getElementById('nextYearBtn').textContent=(YEAR+1)+' ▶';
+ const title=document.getElementById('annualTitle');
+ if(title) title.textContent=YEAR+'年 年間カレンダー';
+ document.title=YEAR+'年 年間カレンダー｜進路相談室 ROUTE';
 }
 document.getElementById('prevYearBtn').onclick=()=>{YEAR--;updateYearHeader();render();};
 document.getElementById('nextYearBtn').onclick=()=>{YEAR++;updateYearHeader();render();};

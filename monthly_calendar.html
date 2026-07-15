@@ -111,10 +111,10 @@ main{max-width:1200px;margin:auto;padding:14px}
   <div class="header-row">
     <div>
       <h1>月間カレンダー</h1>
-      <div class="sub">週間プランナー2と同じGitHub Gistで自動同期</div>
+      <div class="sub">週間カレンダーと同じGitHub Gistで自動同期</div>
     </div>
     <div class="actions">
-      <a class="btn" href="./">週間プランナー2へ戻る</a>
+      <a class="btn" href="./">週間カレンダー</a>
       <a class="btn" href="annual_calendar.html">年間カレンダー</a>
       <button id="reloadBtn">最新を読込</button>
       <button id="printBtn">印刷</button>
@@ -198,7 +198,7 @@ function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':
 async function pull(){
   if(syncing)return;
   if(!ghCfg.token||!ghCfg.gistId){
-    setStatus('週間プランナー2でGitHubトークンとGist IDを設定してください','err');
+    setStatus('週間カレンダーでGitHubトークンとGist IDを設定してください','err');
     render();return;
   }
   syncing=true;setStatus('クラウドから最新予定を読み込んでいます…','syncing');
@@ -221,7 +221,7 @@ async function pull(){
 async function push(){
   if(!ghCfg.token||!ghCfg.gistId){setStatus('GitHub接続情報がありません','err');return}
   syncing=true;setStatus('保存して同期しています…','syncing');
-  const body={description:'進路相談室 ROUTE - 別ユーザー用週間プランナー2 データ',public:false,files:{
+  const body={description:'進路相談室 ROUTE - 別ユーザー用週間カレンダー データ',public:false,files:{
     [GIST_FILE]:{content:JSON.stringify({version:2,updatedAt:new Date().toISOString(),weeks:weeksDB,todos:todosDB},null,2)}
   }};
   try{
