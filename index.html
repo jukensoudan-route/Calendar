@@ -1253,7 +1253,6 @@ if (!window.storage) {
       currentWeek().memo = e.target.value;
       scheduleSave();
     });
-    document.getElementById('saveBtn').addEventListener('click', saveDB);
     document.getElementById('printBtn').addEventListener('click', doPrint);
     document.getElementById('optWeek').addEventListener('change', (e) => {
       document.getElementById('printWeeksInput').disabled = !e.target.checked;
@@ -1584,6 +1583,7 @@ if (!window.storage) {
     const GOOGLE_CFG_KEY='planner-google-calendar-cfg-v1';
     const GOOGLE_SCOPE='https://www.googleapis.com/auth/calendar.events';
     const GOOGLE_AUTO_SYNC_MS=30000;
+    const GOOGLE_LOGIN_HINT='yuko.iphone@gmail.com';
 
     let googleTokenClient=null;
     let googleAccessToken='';
@@ -1636,6 +1636,7 @@ if (!window.storage) {
       googleTokenClient=google.accounts.oauth2.initTokenClient({
         client_id:clientId,
         scope:GOOGLE_SCOPE,
+        login_hint:GOOGLE_LOGIN_HINT,
         callback:()=>{}
       });
       return true;
@@ -1664,9 +1665,9 @@ if (!window.storage) {
 
         // Googleの仕様上、初回接続や期限切れ後の再接続には
         // ユーザー操作が必要です。
-        googleTokenClient.requestAccessToken({
-          prompt:hasValidGoogleToken()?'':'consent'
-        });
+        // 以前に許可済みなら同意画面を強制せず、妻のアカウントを優先します。
+        // Googleの仕様上、期限切れ後はボタン操作が必要な場合があります。
+        googleTokenClient.requestAccessToken({prompt:''});
       });
     }
 
@@ -1896,6 +1897,60 @@ if (!window.storage) {
     document.getElementById('googleSyncBtn').onclick=()=>{
       syncGoogle({auto:false});
     };
+
+
+    async function saveAndSyncAll(){
+      const saveBtn=document.getElementById('saveBtn');
+      const indicator=document.getElementById('saveIndicator');
+      const originalText=saveBtn.textContent;
+
+      if(saveBtn.disabled) return;
+
+      saveBtn.disabled=true;
+      saveBtn.textContent='保存中…';
+      indicator.textContent='端末・クラウド・Googleカレンダーへ保存しています…';
+
+      try{
+        // 1. 端末内へ保存
+        await saveDB();
+
+        // 2. GitHub Gistへ即時保存（接続済みの場合）
+        readGhInputs();
+        if(ghCfg.token&&ghCfg.gistId&&navigator.onLine){
+          if(pushTimer){
+            clearTimeout(pushTimer);
+            pushTimer=null;
+          }
+          await pushToGist(true);
+        }
+
+        // 3. Googleカレンダーへ同期
+        const clientId=document.getElementById('googleClientId').value.trim();
+        if(clientId&&navigator.onLine){
+          const googleOk=await syncGoogle({auto:false});
+          if(!googleOk){
+            indicator.textContent='端末とGitHubには保存しました。Googleは再接続が必要です';
+            return;
+          }
+        }
+
+        indicator.textContent='すべて保存・同期しました';
+        setTimeout(()=>{
+          if(indicator.textContent==='すべて保存・同期しました'){
+            indicator.textContent='';
+          }
+        },2500);
+
+      }catch(e){
+        console.error(e);
+        indicator.textContent='保存または同期に失敗しました。接続状態を確認してください';
+      }finally{
+        saveBtn.disabled=false;
+        saveBtn.textContent=originalText;
+      }
+    }
+
+    document.getElementById('saveBtn').addEventListener('click',saveAndSyncAll);
 
     window.addEventListener('online',autoSyncGoogleIfReady);
     window.addEventListener('focus',autoSyncGoogleIfReady);
