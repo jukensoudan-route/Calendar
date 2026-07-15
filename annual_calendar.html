@@ -52,8 +52,12 @@ main{max-width:1500px;margin:auto;padding:14px}
   .day{min-height:78px}
 }
 
+.day.today{background:#fff7cc!important;box-shadow:inset 0 0 0 2px #f2b705}
+.day.today .num{background:#ffe78a;border-radius:50%;display:inline-block;padding:2px 5px}
 .print-calendar{display:none}
 @media print{
+.day.today,.day.today .num{background:inherit!important;box-shadow:none!important}
+
   header,main,.brand,.modal{display:none!important}
   body{background:#fff!important;margin:0!important}
   .print-calendar{
@@ -136,9 +140,15 @@ main{max-width:1500px;margin:auto;padding:14px}
     <div>
       <h1>2026年 年間カレンダー</h1>
       <div class="sub">週間プランナー2の予定と同じGitHub Gistで自動同期</div>
+      <div id="yearNav" style="margin-top:10px;display:flex;align-items:center;gap:18px;">
+        <button id="prevYearBtn"></button>
+        <div id="currentYearLabel" style="font-size:20px;font-weight:800;color:#16323e;"></div>
+        <button id="nextYearBtn"></button>
+      </div>
     </div>
     <div class="actions">
       <a class="btn" href="./">週間プランナー2へ戻る</a>
+      <button id="todayBtn">今日</button>
       <button id="reloadBtn">最新を読込</button>
       <button id="printBtn">印刷</button>
     </div>
@@ -163,7 +173,7 @@ main{max-width:1500px;margin:auto;padding:14px}
 </div>
 
 <script>
-const YEAR=2026;
+let YEAR=2026;
 const DOW=['日','月','火','水','木','金','土'];
 const WEEKS_KEY='planner2-weeks-db-v1';
 const TODOS_KEY='planner2-todos-db-v1';
@@ -252,7 +262,10 @@ function render(){
     for(let i=0;i<first.getDay();i++){const e=document.createElement('div');e.className='day empty';days.appendChild(e)}
     for(let n=1;n<=last.getDate();n++){
       const d=new Date(YEAR,month,n);const {week,idx}=weekAndIndex(d);const dayData=week.days[idx]||{};
-      const cell=document.createElement('div');cell.className='day '+(d.getDay()===0?'sun':d.getDay()===6?'sat':'');
+      const cell=document.createElement('div');
+      const now=new Date();
+      const today=(d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth()&&d.getDate()===now.getDate());
+      cell.className='day '+(d.getDay()===0?'sun':d.getDay()===6?'sat':'')+(today?' today':'');
       const schedule=(dayData.schedule||'').trim();
       const todoTexts=(dayData.todos||[]).filter(t=>t&&t.text&&!t.checked).map(t=>t.text);
       cell.innerHTML=`<div class="num">${n}</div>${schedule?`<div class="event">${escapeHtml(schedule)}</div>`:''}${todoTexts.slice(0,2).map(t=>`<div class="todo">□ ${escapeHtml(t)}</div>`).join('')}`;
@@ -282,6 +295,19 @@ document.getElementById('saveBtn').onclick=async()=>{
   saveLocal();closeEdit();render();await push();
 };
 document.getElementById('reloadBtn').onclick=pull;
+document.getElementById('todayBtn').onclick=()=>{
+  const now=new Date();
+  if(now.getFullYear()!==YEAR){
+    alert('表示中の年間カレンダーには今日の日付がありません。');
+    return;
+  }
+  const el=[...document.querySelectorAll('.day.today')][0];
+  if(el){
+    el.scrollIntoView({behavior:'smooth',block:'center'});
+    el.animate([{transform:'scale(1)'},{transform:'scale(1.04)'},{transform:'scale(1)'}],{duration:500});
+  }
+};
+
 window.addEventListener('focus',()=>{if(navigator.onLine)pull()});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&navigator.onLine)pull()});
 
@@ -335,7 +361,17 @@ document.getElementById('printBtn').onclick=()=>{
   window.print();
 };
 
+
+function updateYearHeader(){
+ document.getElementById('prevYearBtn').textContent='◀ '+(YEAR-1);
+ document.getElementById('currentYearLabel').textContent=YEAR+'年';
+ document.getElementById('nextYearBtn').textContent=(YEAR+1)+' ▶';
+}
+document.getElementById('prevYearBtn').onclick=()=>{YEAR--;updateYearHeader();render();};
+document.getElementById('nextYearBtn').onclick=()=>{YEAR++;updateYearHeader();render();};
+updateYearHeader();
 loadLocal();render();pull();setInterval(()=>{if(document.visibilityState==='visible'&&navigator.onLine)pull()},30000);
+
 </script>
 </body>
 </html>

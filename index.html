@@ -568,7 +568,22 @@
   .sync-msg.err { color: #c0524a; }
   .sync-msg.ok  { color: #1a9e8f; }
 
+
+  /* 今日の行を画面上だけ強調表示 */
+  .day-row.today {
+    background: #fff7cc !important;
+    box-shadow: inset 4px 0 0 #f2b705;
+  }
+  .day-row.today .day-label {
+    background: #fff1a8;
+  }
+
   @media print {
+    .day-row.today,
+    .day-row.today .day-label {
+      background: inherit !important;
+      box-shadow: none !important;
+    }
     body { background: #fff !important; padding: 0 !important; margin: 0 !important; font-size: 10pt !important; }
 
     /* Hide the live app; show only the generated print pages */
@@ -1089,7 +1104,14 @@ if (!window.storage) {
       dayColumn.innerHTML = '';
       metas.forEach((meta, i) => {
         const row = document.createElement('div');
-        row.className = 'day-row';
+        const rowDate = new Date(startD);
+        rowDate.setDate(startD.getDate() + i);
+        const today = new Date();
+        const isToday =
+          rowDate.getFullYear() === today.getFullYear() &&
+          rowDate.getMonth() === today.getMonth() &&
+          rowDate.getDate() === today.getDate();
+        row.className = 'day-row' + (isToday ? ' today' : '');
         const labelClass = meta.isSat ? 'day-label sat' : (meta.isSun ? 'day-label sun' : 'day-label');
         row.innerHTML = `
           <div class="${labelClass}">
