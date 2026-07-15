@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>週間プランナー2</title>
+<title>家族カレンダー</title>
 <style>
   :root {
     --blue: #2491d6;
@@ -755,7 +755,7 @@ if (!window.storage) {
 <meta name="theme-color" content="#1ac6b2">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="週間プランナー2">
+<meta name="apple-mobile-web-app-title" content="家族カレンダー">
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
@@ -1771,16 +1771,10 @@ if (!window.storage) {
         const items=collectGoogleEvents();
         const checkedAt=new Date().toLocaleTimeString('ja-JP');
 
-        if(!items.length){
-          gmsg(`Google接続済み・同期対象なし（最終確認 ${checkedAt}）`,'ok');
-          return true;
-        }
-
-        const start=new Date(items[0].date+'T00:00:00');
-        const end=addDays2(
-          new Date(items[items.length-1].date+'T00:00:00'),
-          2
-        );
+        const syncStart=new Date(currentWeekStart+'T00:00:00');
+        const syncDays=document.getElementById('googleSyncRange').value==='year'?365:7;
+        const start=syncStart;
+        const end=addDays2(syncStart,syncDays+1);
 
         const existing=await existingManaged(start,end);
         const map=new Map();
@@ -1794,6 +1788,9 @@ if (!window.storage) {
 
         let add=0;
         let upd=0;
+        let del=0;
+
+        const desiredKeys=new Set(items.map(item=>item.key));
 
         for(const item of items){
           const body={
@@ -1827,9 +1824,27 @@ if (!window.storage) {
           }
         }
 
+        // 週間プランナーから消えた予定は、Google側でも削除する。
+        // 対象は routePlannerManaged=true の予定だけなので、
+        // Googleカレンダーへ直接入力した家族の予定は削除しない。
+        for(const managedEvent of existing){
+          const key=managedEvent.extendedProperties
+            &&managedEvent.extendedProperties.private
+            &&managedEvent.extendedProperties.private.routePlannerKey;
+
+          if(key && !desiredKeys.has(key)){
+            await gapi(
+              'https://www.googleapis.com/calendar/v3/calendars/primary/events/'
+              +encodeURIComponent(managedEvent.id),
+              {method:'DELETE'}
+            );
+            del++;
+          }
+        }
+
         const mode=auto?'自動同期':'同期';
         gmsg(
-          `${mode}完了：新規${add}件、更新${upd}件（${checkedAt}）`,
+          `${mode}完了：新規${add}件、更新${upd}件、削除${del}件（${checkedAt}）`,
           'ok'
         );
         return true;
