@@ -775,6 +775,7 @@ if (!window.storage) {
             <span class="start-date" id="startDateLabel"></span>
             <span class="range-sep">〜</span>
             <input type="date" id="endDateInput">
+            <button id="todayBtn" type="button" style="margin-left:6px;padding:4px 10px;border:1px solid #cfd9dd;border-radius:6px;background:#f4fbfd;font-weight:700;cursor:pointer;">今日</button>
           </div>
         </div>
       </div>
@@ -807,7 +808,7 @@ if (!window.storage) {
       <div class="memo">
         <div class="memo-header">MEMO</div>
         <div class="memo-body-wrap">
-          <textarea id="memoText" placeholder="メモを入力..."></textarea>
+          <textarea id="memoText" placeholder=""></textarea>
         </div>
       </div>
     </div>
@@ -1249,6 +1250,13 @@ if (!window.storage) {
       render();
       scheduleSave();
     });
+
+    document.getElementById('todayBtn').addEventListener('click',()=>{
+      currentWeekStart=fmtDateInput(getMondayOf(null));
+      render();
+      scheduleSave();
+    });
+
     document.getElementById('memoText').addEventListener('input', (e) => {
       currentWeek().memo = e.target.value;
       scheduleSave();
