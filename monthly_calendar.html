@@ -162,10 +162,11 @@ main{max-width:1200px;margin:auto;padding:14px}
       <div class="sub">週間カレンダーと同じGitHub Gistで自動同期</div>
     </div>
     <div class="actions">
-      <a class="btn" href="./?view=todo">TODOリスト</a>
-      <a class="btn" href="./?view=done">完了リスト</a>
-      <a class="btn" href="./">週間カレンダー</a>
-      <a class="btn" href="annual_calendar.html">年間カレンダー</a>
+      <a class="btn" href="./?view=todo">TODO</a>
+      <a class="btn" href="./?view=done">完了</a>
+      <a class="btn" href="./">週間</a>
+      <a class="btn" href="monthly_calendar.html">月間</a>
+      <a class="btn" href="annual_calendar.html">年間</a>
       <button id="reloadBtn">最新を読込</button>
       <button id="printBtn">印刷</button>
     </div>
@@ -507,31 +508,72 @@ function closeEdit(){document.getElementById('modal').classList.remove('open');s
 document.getElementById('cancelBtn').onclick=closeEdit;
 document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeEdit()});
 document.getElementById('saveBtn').onclick=async()=>{
-  if(!selectedDate)return;
-  const {week,idx}=weekAndIndex(selectedDate),dayData=week.days[idx];
-  normalizeDayTodos(dayData);
-  const previousTodos=dayData.todos.map(t=>({...t}));
+  const saveBtn=document.getElementById('saveBtn');
+  if(!selectedDate){
+    setStatus('保存する日付が選択されていません','err');
+    return;
+  }
 
-  const eventRows=[...document.querySelectorAll('#eventEditList .event-edit-row')];
-  dayData.events=eventRows.map(r=>({
-    color:r.querySelector('.color-picker').dataset.color,
-    text:r.querySelector('input[type="text"]').value
-  }));
-  syncScheduleFromEvents(dayData);
+  const originalText=saveBtn.textContent;
+  saveBtn.disabled=true;
+  saveBtn.textContent='保存中…';
 
-  const rows=[...document.querySelectorAll('#todoEditList .todo-row')];
-  dayData.todos=rows.map((r,i)=>{
-    const text=r.querySelector('input[type="text"]').value.trim();
-    const existing=(todosDB.items||[]).find(x=>!x.done&&String(x.text||'').trim()===text);
-    return {
-      checked:r.querySelector('input[type="checkbox"]').checked,
-      text,
-      todoId:existing?.id||previousTodos[i]?.todoId||null
-    };
-  });
-  dayData.todos.forEach(linkOrCreateTodo);
-  syncDayTodosToMaster(dayData,previousTodos);
-  saveLocal();closeEdit();render();await push();
+  try{
+    const {week,idx}=weekAndIndex(selectedDate);
+    const dayData=week.days[idx];
+    normalizeDayTodos(dayData);
+    const previousTodos=dayData.todos.map(t=>({...t}));
+
+    const eventRows=[...document.querySelectorAll('#eventEditList .event-edit-row')];
+    dayData.events=eventRows.map(r=>{
+      const picker=r.querySelector('.color-picker');
+      const select=r.querySelector('select');
+      const input=r.querySelector('input[type="text"]');
+      const color=(picker&&picker.dataset.color)||
+                  r.dataset.color||
+                  (select&&select.value)||
+                  'white';
+      return {
+        color:EVENT_COLORS[color]?color:'white',
+        text:input?input.value:''
+      };
+    });
+    syncScheduleFromEvents(dayData);
+
+    const rows=[...document.querySelectorAll('#todoEditList .todo-row')];
+    dayData.todos=rows.map((r,i)=>{
+      const input=r.querySelector('input[type="text"]');
+      const check=r.querySelector('input[type="checkbox"]');
+      const todoText=input?input.value.trim():'';
+      const existing=(todosDB.items||[]).find(
+        x=>!x.done&&String(x.text||'').trim()===todoText
+      );
+      return {
+        checked:check?check.checked:false,
+        text:todoText,
+        todoId:(existing&&existing.id)||previousTodos[i]?.todoId||null
+      };
+    });
+
+    dayData.todos.forEach(linkOrCreateTodo);
+    syncDayTodosToMaster(dayData,previousTodos);
+
+    // まず端末内へ確実に保存し、画面をすぐ更新する
+    saveLocal();
+    closeEdit();
+    render();
+    setStatus('端末に保存しました。クラウド同期中…','ok');
+
+    // クラウド同期はその後に実行
+    await push();
+  }catch(e){
+    console.error('保存エラー',e);
+    setStatus('保存できませんでした。ページを再読み込みしてください','err');
+    alert('保存処理でエラーが発生しました。\n'+(e&&e.message?e.message:e));
+  }finally{
+    saveBtn.disabled=false;
+    saveBtn.textContent=originalText;
+  }
 };
 document.getElementById('prevBtn').onclick=()=>{shown.setMonth(shown.getMonth()-1);render()};
 document.getElementById('nextBtn').onclick=()=>{shown.setMonth(shown.getMonth()+1);render()};

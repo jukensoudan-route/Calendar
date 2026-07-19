@@ -311,6 +311,101 @@
 
   .event-text{flex:1;min-width:0;border:none;border-bottom:1px dotted var(--line-soft);font:11px inherit;padding:3px 4px;background:transparent}
   .event-text:focus{outline:none;background:#fbfeff}
+
+  /* 予定とTODOを日ごと・行ごとに揃える */
+  .unified-week-body{
+    display:flex;
+    flex-direction:column;
+    width:100%;
+  }
+  .unified-day-row{
+    display:grid;
+    grid-template-columns:52px minmax(0,1fr) 128px;
+    min-height:116px;
+    border-bottom:1px solid var(--line);
+  }
+  .unified-day-row:last-child{border-bottom:none}
+  .unified-day-row:nth-child(odd){background:#f7fbfd}
+  .unified-day-row.today{
+    box-shadow:inset 4px 0 0 #ffb300;
+    background:#fff8df;
+  }
+  .unified-day-label{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    border-right:1px solid var(--line);
+    padding:6px 2px;
+  }
+  .unified-day-label .date-num{font-size:15px;font-weight:700;color:#1e2b33;line-height:1}
+  .unified-day-label.sat .date-num{color:var(--blue)}
+  .unified-day-label.sun .date-num{color:#e0574a}
+  .unified-day-label .dow-jp{font-size:10px;color:var(--slate);font-weight:700;margin-top:3px}
+  .aligned-schedule,
+  .aligned-todo{
+    display:grid;
+    grid-template-rows:repeat(4,27px);
+    align-content:start;
+    padding:4px 6px;
+    box-sizing:border-box;
+  }
+  .aligned-schedule{border-right:1px solid var(--border)}
+  .aligned-event-line,
+  .aligned-todo-line{
+    min-height:27px;
+    height:27px;
+    display:flex;
+    align-items:center;
+    gap:5px;
+    box-sizing:border-box;
+  }
+  .aligned-event-line .color-tile{
+    width:22px;
+    height:22px;
+    border-radius:5px;
+  }
+  .aligned-event-line .color-palette{top:27px}
+  .aligned-event-line .event-text{
+    height:23px;
+    box-sizing:border-box;
+  }
+  .aligned-todo-line input[type="checkbox"]{
+    width:13px;
+    height:13px;
+    margin:0;
+    flex:0 0 auto;
+    accent-color:var(--teal);
+  }
+  .aligned-todo-line .mini-text{
+    flex:1;
+    min-width:0;
+    height:23px;
+    box-sizing:border-box;
+    border:none;
+    border-bottom:1px dotted var(--line-soft);
+    background:transparent;
+    font:10px inherit;
+    padding:2px;
+  }
+  .aligned-todo-line .mini-text:focus{outline:none;background:#fbfeff}
+  .aligned-todo-line .mini-pick{
+    width:20px;
+    height:20px;
+    flex:0 0 auto;
+    border:1px solid var(--border);
+    border-radius:4px;
+    background:#f4fbfd;
+    color:transparent;
+    font-size:0;
+    cursor:pointer;
+    padding:0;
+  }
+  .aligned-todo-line input[type="checkbox"]:checked ~ .mini-text{
+    color:#9db2ba;
+    text-decoration:line-through;
+  }
+
   
   
   
@@ -827,11 +922,11 @@ if (!window.storage) {
     <div class="accent-bar"></div>
 
     <div class="tabs">
-      <button class="tab-btn active" id="tabSchedule">週間表</button>
-      <button class="tab-btn" id="tabTodo">TODOリスト</button>
-      <button class="tab-btn" id="tabDone">完了リスト</button>
-      <a class="calendar-link" href="monthly_calendar.html">月間カレンダー</a>
-      <a class="calendar-link" href="annual_calendar.html">年間カレンダー</a>
+      <button class="tab-btn" id="tabTodo">TODO</button>
+      <button class="tab-btn" id="tabDone">完了</button>
+      <button class="tab-btn active" id="tabSchedule">週間</button>
+      <a class="calendar-link" href="monthly_calendar.html">月間</a>
+      <a class="calendar-link" href="annual_calendar.html">年間</a>
     </div>
 
     <div class="page active" id="pageSchedule">
@@ -842,10 +937,7 @@ if (!window.storage) {
             <div class="col-header schedule">予定</div>
             <div class="col-header todo">TODO</div>
           </div>
-          <div class="table-body">
-            <div class="day-column" id="dayColumn"></div>
-            <div class="day-todo-column" id="dayTodoColumn"></div>
-          </div>
+          <div class="table-body unified-week-body" id="weeklyRows"></div>
         </div>
       </div>
 
@@ -1203,11 +1295,11 @@ function linkOrCreateTodo(todo){
 
       const metas = computeDayMeta(currentWeekStart);
 
-      // Schedule column
-      const dayColumn = document.getElementById('dayColumn');
-      dayColumn.innerHTML = '';
+      // 予定とTODOを日ごと・行ごとに揃えて描画
+      const weeklyRows = document.getElementById('weeklyRows');
+      weeklyRows.innerHTML = '';
+
       metas.forEach((meta, i) => {
-        const row = document.createElement('div');
         const rowDate = new Date(startD);
         rowDate.setDate(startD.getDate() + i);
         const today = new Date();
@@ -1215,68 +1307,79 @@ function linkOrCreateTodo(todo){
           rowDate.getFullYear() === today.getFullYear() &&
           rowDate.getMonth() === today.getMonth() &&
           rowDate.getDate() === today.getDate();
-        row.className = 'day-row' + (isToday ? ' today' : '');
-        const labelClass = meta.isSat ? 'day-label sat' : (meta.isSun ? 'day-label sun' : 'day-label');
+
         normalizeEvents(week.days[i]);
-        row.innerHTML = `
+        while (week.days[i].events.length < 4) {
+          week.days[i].events.push({ color:'white', text:'' });
+        }
+        while (week.days[i].todos.length < 4) {
+          week.days[i].todos.push({ checked:false, text:'', todoId:null });
+        }
+
+        const dayRow = document.createElement('div');
+        dayRow.className = 'unified-day-row' + (isToday ? ' today' : '');
+
+        const labelClass = meta.isSat
+          ? 'unified-day-label sat'
+          : (meta.isSun ? 'unified-day-label sun' : 'unified-day-label');
+
+        dayRow.innerHTML = `
           <div class="${labelClass}">
             <span class="date-num">${meta.label}</span>
             <span class="dow-jp">(${meta.dow})</span>
           </div>
-          <div class="day-content">
-            <div class="event-lines"></div>
-          </div>
+          <div class="aligned-schedule"></div>
+          <div class="aligned-todo"></div>
         `;
-        dayColumn.appendChild(row);
-        const lines=row.querySelector('.event-lines');
-        week.days[i].events.forEach((event,eventIndex)=>{
-          const line=document.createElement('div');
-          line.className='event-line';
-          line.dataset.color=event.color;
-          line.innerHTML=`
-            ${colorPickerHtml(event.color)}
+
+        const scheduleBox = dayRow.querySelector('.aligned-schedule');
+        const todoBox = dayRow.querySelector('.aligned-todo');
+
+        for (let j = 0; j < 4; j++) {
+          const event = week.days[i].events[j];
+          const eventLine = document.createElement('div');
+          eventLine.className = 'aligned-event-line';
+          eventLine.dataset.color = event.color || 'white';
+          eventLine.innerHTML = `
+            ${colorPickerHtml(event.color || 'white')}
             <input class="event-text" type="text" placeholder="">
           `;
-          const picker=line.querySelector('.color-picker');
-          const input=line.querySelector('.event-text');
-          input.value=event.text;
-          setupColorPicker(picker,color=>{
-            event.color=color;
-            line.dataset.color=color;
-            syncScheduleFromEvents(week.days[i]);
-            scheduleSave();
-          });
-          input.addEventListener('input',e=>{
-            event.text=e.target.value;
-            syncScheduleFromEvents(week.days[i]);
-            scheduleSave();
-          });
-          lines.appendChild(line);
-        });
-      });
 
-      // In-table TODO column: text input + dropdown from TODO DB
-      const dayTodoColumn = document.getElementById('dayTodoColumn');
-      dayTodoColumn.innerHTML = '';
-      metas.forEach((meta, i) => {
-        const cell = document.createElement('div');
-        cell.className = 'day-todo-cell';
-        week.days[i].todos.forEach((todo, j) => {
-          const row = document.createElement('div');
-          row.className = 'mini-check';
-          row.innerHTML = `
+          const picker = eventLine.querySelector('.color-picker');
+          const eventInput = eventLine.querySelector('.event-text');
+          eventInput.value = event.text || '';
+
+          setupColorPicker(picker, color => {
+            event.color = color;
+            eventLine.dataset.color = color;
+            syncScheduleFromEvents(week.days[i]);
+            scheduleSave();
+          });
+
+          eventInput.addEventListener('input', e => {
+            event.text = e.target.value;
+            syncScheduleFromEvents(week.days[i]);
+            scheduleSave();
+          });
+
+          scheduleBox.appendChild(eventLine);
+
+          const todo = week.days[i].todos[j];
+          const todoLine = document.createElement('div');
+          todoLine.className = 'aligned-todo-line';
+          todoLine.innerHTML = `
             <input type="checkbox" ${todo.checked ? 'checked' : ''}>
-            <input type="text" class="mini-text" placeholder="TODO">
+            <input type="text" class="mini-text" placeholder="">
             <select class="mini-pick">${todoOptionsHtml(todo.todoId)}</select>
           `;
-          const checkbox = row.querySelector('input[type="checkbox"]');
-          const textInput = row.querySelector('.mini-text');
-          const select = row.querySelector('.mini-pick');
+
+          const checkbox = todoLine.querySelector('input[type="checkbox"]');
+          const textInput = todoLine.querySelector('.mini-text');
+          const select = todoLine.querySelector('.mini-pick');
           textInput.value = todo.text || '';
 
-          checkbox.addEventListener('change', (e) => {
+          checkbox.addEventListener('change', e => {
             todo.checked = e.target.checked;
-            // Reflect completion back into the TODO DB if it came from there
             if (todo.todoId) {
               const dbItem = todosDB.items.find(t => t.id === todo.todoId);
               if (dbItem) dbItem.done = e.target.checked;
@@ -1285,21 +1388,22 @@ function linkOrCreateTodo(todo){
             render();
           });
 
-          textInput.addEventListener('input', (e) => {
+          textInput.addEventListener('input', e => {
             todo.text = e.target.value;
-            if(todo.todoId){
-              const linked=todosDB.items.find(t=>t.id===todo.todoId);
-              if(linked) linked.text=todo.text;
+            if (todo.todoId) {
+              const linked = todosDB.items.find(t => t.id === todo.todoId);
+              if (linked) linked.text = todo.text;
             }
             scheduleSave();
           });
-          textInput.addEventListener('blur',()=>{
+
+          textInput.addEventListener('blur', () => {
             linkOrCreateTodo(todo);
             scheduleSave();
             render();
           });
 
-          select.addEventListener('change', (e) => {
+          select.addEventListener('change', e => {
             const id = e.target.value;
             if (!id) {
               todo.todoId = null;
@@ -1314,9 +1418,10 @@ function linkOrCreateTodo(todo){
             scheduleSave();
           });
 
-          cell.appendChild(row);
-        });
-        dayTodoColumn.appendChild(cell);
+          todoBox.appendChild(todoLine);
+        }
+
+        weeklyRows.appendChild(dayRow);
       });
 
       // Master TODO list: always 20 visible rows; checked items vanish from view but stay in DB
