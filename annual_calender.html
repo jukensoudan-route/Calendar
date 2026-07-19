@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2026年 年間カレンダー｜進路相談室 ROUTE</title>
+<style>
+:root{
+  --blue:#2491d6;--teal:#1ac6b2;--navy:#16323e;--slate:#5a7480;
+  --line:#dbe5e9;--bg:#f4f6f7;--sun:#e0574a;--sat:#2491d6;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;color:#1e2b33}
+header{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.97);border-bottom:1px solid var(--line);box-shadow:0 2px 10px rgba(22,50,62,.08);padding:10px 14px}
+.header-row{max-width:1500px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:10px}
+h1{font-size:20px;margin:0;color:var(--navy)}
+.sub{font-size:11px;color:var(--slate);margin-top:3px}
+.actions{display:flex;gap:7px;flex-wrap:wrap}
+button,a.btn{font:700 12px inherit;border:1px solid #cfd9dd;background:#fff;color:var(--slate);border-radius:7px;padding:8px 11px;text-decoration:none;cursor:pointer}
+button.primary{border:none;color:#fff;background:linear-gradient(135deg,var(--blue),var(--teal))}
+.status{max-width:1500px;margin:7px auto 0;font-size:11px;color:var(--slate)}
+.status.ok{color:#168f81}.status.err{color:#bf5249}.status.syncing{color:var(--blue)}
+main{max-width:1500px;margin:auto;padding:14px}
+.year-grid{display:grid;grid-template-columns:repeat(4,minmax(260px,1fr));gap:12px}
+.month{background:#fff;border:1px solid var(--line);border-radius:9px;overflow:hidden;box-shadow:0 2px 10px rgba(22,50,62,.06)}
+.month-title{padding:8px 10px;text-align:center;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--blue),var(--teal));font-size:15px}
+.week-head,.days{display:grid;grid-template-columns:repeat(7,1fr)}
+.week-head div{padding:5px 2px;text-align:center;font-size:10px;font-weight:700;color:var(--slate);border-bottom:1px solid var(--line)}
+.week-head .sun{color:var(--sun)}.week-head .sat{color:var(--sat)}
+.day{min-height:88px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:4px;overflow:hidden;cursor:pointer;background:#fff}
+.day:nth-child(7n){border-right:none}
+.day.empty{background:#f7f9fa;cursor:default}
+.day:hover:not(.empty){background:#f4fbfd}
+.num{font-size:11px;font-weight:800;margin-bottom:3px}
+.day.sun .num{color:var(--sun)}.day.sat .num{color:var(--sat)}
+.event{font-size:9px;line-height:1.35;background:#edf8fb;border-left:3px solid var(--teal);border-radius:3px;padding:2px 3px;margin:2px 0;white-space:pre-wrap;overflow:hidden;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical}
+.todo{font-size:8px;color:#667f89;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.brand{text-align:center;padding:14px;font-size:10px;color:#78909a;letter-spacing:1px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.36);display:none;align-items:center;justify-content:center;padding:14px;z-index:50}
+.modal.open{display:flex}
+.dialog{width:min(520px,100%);background:#fff;border-radius:12px;padding:16px;box-shadow:0 12px 40px rgba(0,0,0,.22)}
+.dialog h2{font-size:17px;margin:0 0 10px;color:var(--navy)}
+.dialog label{display:block;font-size:11px;font-weight:700;color:var(--slate);margin-bottom:4px}
+.dialog textarea{width:100%;height:150px;border:1px solid #cfd9dd;border-radius:8px;padding:10px;font:13px inherit;resize:vertical}
+
+.event-editor{display:grid;gap:6px}
+.event-edit-row{display:flex;align-items:center;gap:6px;padding-left:0}
+
+
+
+
+  .color-picker{position:relative;flex:0 0 auto}
+  .color-tile{width:26px;height:26px;border:1px solid rgba(0,0,0,.16);border-radius:6px;padding:0;cursor:pointer;display:block}
+  .color-tile[data-color="white"],.color-choice[data-color="white"]{background:#ffffff;border:1px solid #bfc7cf}
+.color-tile[data-color="blue"],.color-choice[data-color="blue"]{background:#2491d6}
+  .color-tile[data-color="orange"],.color-choice[data-color="orange"]{background:#f39a3f}
+  .color-tile[data-color="purple"],.color-choice[data-color="purple"]{background:#8b63d9}
+  .color-tile[data-color="pink"],.color-choice[data-color="pink"]{background:#e97fa8}
+  .color-palette{display:none;position:absolute;left:0;top:31px;z-index:50;background:#fff;border:1px solid #cfd9dd;border-radius:8px;padding:5px;gap:5px;box-shadow:0 5px 16px rgba(0,0,0,.18)}
+  .color-picker.open .color-palette{display:flex}
+  .color-choice{width:25px;height:25px;border:1px solid rgba(0,0,0,.14);border-radius:5px;padding:0;cursor:pointer}
+  .color-choice.selected{outline:2px solid #263238;outline-offset:1px}
+
+.event-edit-row input{flex:1;border:1px solid #cfd9dd;border-radius:6px;padding:7px;font:12px inherit}
+.todo-row select{flex:1;border:1px solid #cfd9dd;border-radius:6px;padding:7px;font:11px inherit}
+.todo-row input[type="text"]{flex:1.4}
+.event.blue{border-left-color:#2491d6}.event.orange{border-left-color:#f39a3f}.event.purple{border-left-color:#8b63d9}.event.pink{border-left-color:#e97fa8}
+
+.todo-list{display:grid;gap:6px;margin-top:6px}
+.todo-row{display:flex;gap:6px;align-items:center}
+.todo-row input[type="checkbox"]{width:16px;height:16px}
+.todo-row input[type="text"]{flex:1;border:1px solid #cfd9dd;border-radius:6px;padding:7px;font:12px inherit}
+.dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
+@media(max-width:1100px){.year-grid{grid-template-columns:repeat(3,minmax(250px,1fr))}}
+@media(max-width:800px){.year-grid{grid-template-columns:repeat(2,minmax(240px,1fr))}}
+@media(max-width:540px){
+  .header-row{align-items:flex-start;flex-direction:column}
+  .actions{width:100%}.actions>*{flex:1;text-align:center}
+  main{padding:7px}.year-grid{grid-template-columns:1fr;gap:8px}
+  .day{min-height:78px}
+}
+
+.day.today{background:#fff7cc!important;box-shadow:inset 0 0 0 2px #f2b705}
+.day.today .num{background:#ffe78a;border-radius:50%;display:inline-block;padding:2px 5px}
+.print-calendar{display:none}
+@media print{
+.day.today,.day.today .num{background:inherit!important;box-shadow:none!important}
+
+  header,main,.brand,.modal{display:none!important}
+  body{background:#fff!important;margin:0!important}
+  .print-calendar{
+    display:block!important;
+    width:100%;
+    padding:5mm 7mm;
+    color:#1e2b33;
+    font-family:"Yu Gothic","Meiryo",sans-serif;
+    box-sizing:border-box;
+  }
+  .excel-title{
+    background:linear-gradient(90deg,#2491d6,#1ac6b2);
+    color:#fff;
+    border:0.35mm solid #78909a;
+    text-align:center;
+    font-size:18pt;
+    font-weight:700;
+    padding:4mm 0;
+    margin:0;
+  }
+  .excel-year-grid{
+    display:grid;
+    grid-template-columns:repeat(12,1fr);
+    border-left:0.35mm solid #78909a;
+    border-top:0.35mm solid #78909a;
+  }
+  .excel-month{
+    min-width:0;
+    border-right:0.35mm solid #78909a;
+  }
+  .excel-month-name{
+    height:8mm;
+    color:#fff;
+    background:linear-gradient(160deg,#2ea0e8,#1ac6b2);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:9pt;
+    font-weight:700;
+    border-bottom:0.35mm solid #78909a;
+    background:#fff;
+  }
+  .excel-row{
+    display:grid;
+    grid-template-columns:7mm 1fr;
+    height:5.2mm;
+    border-bottom:0.25mm solid #b8c6cc;
+  }
+  .excel-date{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-right:0.25mm solid #b8c6cc;
+    font-size:6.5pt;
+    font-weight:700;
+    line-height:1;
+    position:relative;
+  }
+  .excel-date.sun{background:#fff1ef;color:#e0574a}
+  .excel-date.sat{background:#eef7fd;color:#2491d6}
+  .excel-event{
+    overflow:hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+    padding:0.4mm 0.7mm;
+    font-size:5.5pt;
+    line-height:4.4mm;
+    background:#fff;
+  }
+  .excel-event.has-event{background:#edf8fb;border-left:1mm solid #1ac6b2}
+  .excel-event.has-todo{background:#f4fbfd;border-left:1mm solid #2491d6}
+  @page{size:A3 landscape;margin:0}
+}
+
+
+
+
+.todo-combo{position:relative;flex:1;min-width:0}
+.todo-combo input[type="text"]{
+  width:100%;
+  box-sizing:border-box;
+  border:1px solid #cfd9dd;
+  border-radius:7px;
+  padding:8px 30px 8px 9px;
+  font:12px inherit;
+  background:#fff;
+}
+.todo-combo::after{
+  content:"▾";
+  position:absolute;
+  right:10px;
+  top:50%;
+  transform:translateY(-50%);
+  pointer-events:none;
+  color:#65737a;
+  font-size:11px;
+}
+
+
+/* 空白の予定マスは常に白 */
+.event:empty,
+.event-line:has(.event-text:placeholder-shown),
+.event-edit-row input:placeholder-shown,
+.event-text:placeholder-shown{
+  background:#ffffff !important;
+}
+.event-edit-row,
+.event-line{
+  background:#ffffff;
+}
+
+
+/* 月間カレンダー基準の共通ボタン */
+.actions, .tabs{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  align-items:center;
+}
+.actions button, .actions a.btn,
+.tabs button, .tabs a{
+  font:700 12px inherit !important;
+  border:1px solid #cfd9dd !important;
+  background:#ffffff !important;
+  color:#5a7480 !important;
+  border-radius:7px !important;
+  padding:8px 11px !important;
+  text-decoration:none !important;
+  cursor:pointer;
+  box-shadow:none !important;
+}
+.actions button:hover, .actions a.btn:hover,
+.tabs button:hover, .tabs a:hover{
+  background:#f4f6f7 !important;
+}
+.actions .active, .tabs .active{
+  color:#ffffff !important;
+  border-color:transparent !important;
+  background:linear-gradient(135deg,#2491d6,#1ac6b2) !important;
+}
+
+</style>
+</head>
+<body>
+<header>
+  <div class="header-row">
+    <div>
+      <h1 id="annualTitle">2026年 年間カレンダー</h1>
+      <div class="sub">週間カレンダーの予定と同じGitHub Gistで自動同期</div>
+      <div id="yearNav" style="margin-top:10px;display:flex;align-items:center;gap:18px;">
+        <button id="prevYearBtn"></button>
+        <div id="currentYearLabel" style="font-size:20px;font-weight:800;color:#16323e;"></div>
+        <button id="nextYearBtn"></button>
+      </div>
+    </div>
+    <div class="actions">
+      <a class="btn" href="./?view=todo">TODO</a>
+      <a class="btn" href="./?view=done">完了</a>
+      <a class="btn" href="./">週間</a>
+      <a class="btn" href="monthly_calender.html">月間</a>
+      <a class="btn" href="annual_calender.html">年間</a>
+      <button id="todayBtn">今日</button>
+      <button id="reloadBtn">最新を読込</button>
+      <button id="printBtn">印刷</button>
+    </div>
+  </div>
+  <div id="status" class="status">同期情報を確認しています…</div>
+</header>
+
+<main>
+<div id="calendar" class="year-grid"></div></main>
+<div id="printCalendar" class="print-calendar"></div>
+<div class="brand">進路相談室 ROUTE</div>
+
+<div id="modal" class="modal">
+  <div class="dialog">
+    <h2 id="editTitle"></h2>
+    <label for="scheduleEdit">予定</label>
+    <div id="eventEditList" class="event-editor"></div>
+    <label>TODO</label>
+    <div id="todoEditList" class="todo-list"></div>
+    <div class="dialog-actions">
+      <button id="cancelBtn">キャンセル</button>
+      <button class="primary" id="saveBtn">保存して同期</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let YEAR=2026;
+const DOW=['日','月','火','水','木','金','土'];
+const WEEKS_KEY='planner2-weeks-db-v1';
+const TODOS_KEY='planner2-todos-db-v1';
+const GH_KEY='planner2-github-cfg-v1';
+const GIST_FILE='route-planner2-data.json';
+
+let weeksDB={};
+let todosDB={items:[]};
+let ghCfg={token:'',gistId:''};
+let selectedDate=null;
+let syncing=false;
+
+function pad(n){return String(n).padStart(2,'0')}
+function fmt(d){return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}
+function mondayOf(d){
+  const x=new Date(d); const day=x.getDay();
+  x.setDate(x.getDate()+(day===0?-6:1-day)); return x;
+}
+function emptyWeek(){
+  return {days:Array.from({length:7},()=>({schedule:'',todos:Array.from({length:4},()=>({checked:false,text:'',todoId:null}))})),memo:''};
+}
+function weekAndIndex(date){
+  const m=mondayOf(date);
+  const key=fmt(m);
+  const idx=(date.getDay()+6)%7;
+  if(!weeksDB[key]) weeksDB[key]=emptyWeek();
+  return {key,idx,week:weeksDB[key]};
+}
+function setStatus(t,k=''){const e=document.getElementById('status');e.textContent=t;e.className='status '+k}
+function loadLocal(){
+  try{weeksDB=JSON.parse(localStorage.getItem(WEEKS_KEY)||'{}')||{}}catch(e){weeksDB={}}
+  try{
+    todosDB=JSON.parse(localStorage.getItem(TODOS_KEY)||'{"items":[]}')||{items:[]};
+    if(!todosDB||!Array.isArray(todosDB.items)) todosDB={items:[]};
+  }catch(e){todosDB={items:[]}}
+  try{ghCfg=JSON.parse(localStorage.getItem(GH_KEY)||'{}')||{}}catch(e){ghCfg={}}
+}
+function saveLocal(){
+  localStorage.setItem(WEEKS_KEY,JSON.stringify(weeksDB));
+  localStorage.setItem(TODOS_KEY,JSON.stringify(todosDB));
+}
+function headers(){
+  return {'Authorization':'Bearer '+ghCfg.token,'Accept':'application/vnd.github+json','Content-Type':'application/json'};
+}
+async function pull(){
+  if(syncing)return;
+  if(!ghCfg.token||!ghCfg.gistId){
+    setStatus('週間カレンダーでGitHubトークンとGist IDを設定してください','err');
+    render(); return;
+  }
+  syncing=true;setStatus('クラウドから最新予定を読み込んでいます…','syncing');
+  try{
+    const r=await fetch('https://api.github.com/gists/'+ghCfg.gistId,{headers:headers()});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const data=await r.json();
+    const file=data.files&&data.files[GIST_FILE];
+    if(!file)throw new Error('データファイルが見つかりません');
+    let content=file.content;
+    if(file.truncated&&file.raw_url)content=await(await fetch(file.raw_url)).text();
+    const parsed=JSON.parse(content);
+    if(parsed.weeks)weeksDB=parsed.weeks;
+    if(parsed.todos)todosDB=parsed.todos;
+    if(!todosDB||!Array.isArray(todosDB.items)) todosDB={items:[]};
+    saveLocal();render();
+    setStatus('最新予定を読み込みました：'+new Date().toLocaleTimeString('ja-JP'),'ok');
+  }catch(e){
+    console.error(e);setStatus('読込に失敗しました。接続設定を確認してください','err');render();
+  }finally{syncing=false}
+}
+async function push(){
+  if(!ghCfg.token||!ghCfg.gistId){setStatus('GitHub接続情報がありません','err');return}
+  syncing=true;setStatus('保存して同期しています…','syncing');
+  const body={description:'進路相談室 ROUTE - 別ユーザー用週間カレンダー データ',public:false,files:{
+    [GIST_FILE]:{content:JSON.stringify({version:2,updatedAt:new Date().toISOString(),weeks:weeksDB,todos:todosDB},null,2)}
+  }};
+  try{
+    const r=await fetch('https://api.github.com/gists/'+ghCfg.gistId,{method:'PATCH',headers:headers(),body:JSON.stringify(body)});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    saveLocal();render();setStatus('予定を保存・同期しました：'+new Date().toLocaleTimeString('ja-JP'),'ok');
+  }catch(e){console.error(e);setStatus('保存に失敗しました','err')}
+  finally{syncing=false}
+}
+
+function renderSharedTodoPanels(){
+  const todoBox=document.getElementById('sharedTodoList');
+  const doneBox=document.getElementById('sharedDoneList');
+  if(!todoBox||!doneBox) return;
+
+  const active=(todosDB.items||[]).filter(t=>!t.done);
+  const done=(todosDB.items||[]).filter(t=>t.done);
+
+  const makeItem=(item,isDone)=>{
+    const row=document.createElement('div');
+    row.className='todo-panel-item';
+    row.innerHTML=`<input type="checkbox" ${isDone?'checked':''}><div class="text">${escapeHtml(item.text||'')}</div>`;
+    const check=row.querySelector('input[type="checkbox"]');
+    check.addEventListener('change',async()=>{
+      item.done=check.checked;
+      saveLocal();
+          if(typeof render==='function') render();
+      if(typeof push==='function') await push();
+    });
+    return row;
+  };
+
+  todoBox.innerHTML='';
+  doneBox.innerHTML='';
+
+  if(active.length===0){
+    todoBox.innerHTML='<div class="todo-panel-empty"></div>';
+  }else{
+    active.forEach(item=>todoBox.appendChild(makeItem(item,false)));
+  }
+
+  if(done.length===0){
+    doneBox.innerHTML='<div class="todo-panel-empty"></div>';
+  }else{
+    done.forEach(item=>doneBox.appendChild(makeItem(item,true)));
+  }
+}
+
+function render(){
+  renderSharedTodoPanels();
+  const root=document.getElementById('calendar');root.innerHTML='';
+  for(let month=0;month<12;month++){
+    const box=document.createElement('section');box.className='month';
+    box.innerHTML=`<div class="month-title">${month+1}月</div><div class="week-head">${DOW.map((d,i)=>`<div class="${i===0?'sun':i===6?'sat':''}">${d}</div>`).join('')}</div><div class="days"></div>`;
+    const days=box.querySelector('.days');
+    const first=new Date(YEAR,month,1),last=new Date(YEAR,month+1,0);
+    for(let i=0;i<first.getDay();i++){const e=document.createElement('div');e.className='day empty';days.appendChild(e)}
+    for(let n=1;n<=last.getDate();n++){
+      const d=new Date(YEAR,month,n);const {week,idx}=weekAndIndex(d);const dayData=week.days[idx]||{};
+      normalizeDayTodos(dayData);
+      const cell=document.createElement('div');
+      const now=new Date();
+      const today=(d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth()&&d.getDate()===now.getDate());
+      cell.className='day '+(d.getDay()===0?'sun':d.getDay()===6?'sat':'')+(today?' today':'');
+      normalizeEvents(dayData);
+      const events=dayData.events.filter(e=>e.text.trim());
+      const todoTexts=(dayData.todos||[]).filter(t=>t&&t.text&&!t.checked).map(t=>t.text);
+      cell.innerHTML=`<div class="num">${n}</div>${events.map(e=>`<div class="event ${e.color}">${escapeHtml(e.text)}</div>`).join('')}${todoTexts.slice(0,2).map(t=>`<div class="todo">□ ${escapeHtml(t)}</div>`).join('')}`;
+      cell.addEventListener('click',()=>openEdit(d));
+      days.appendChild(cell);
+    }
+    const total=first.getDay()+last.getDate();
+    for(let i=total;i<42;i++){const e=document.createElement('div');e.className='day empty';days.appendChild(e)}
+    root.appendChild(box);
+  }
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+function normalizeDayTodos(dayData){
+  if(!Array.isArray(dayData.todos)) dayData.todos=[];
+  while(dayData.todos.length<4){
+    dayData.todos.push({checked:false,text:'',todoId:null});
+  }
+  dayData.todos=dayData.todos.slice(0,4);
+  dayData.todos.forEach(t=>{
+    if(typeof t.checked!=='boolean') t.checked=false;
+    if(typeof t.text!=='string') t.text='';
+    if(t.todoId===undefined) t.todoId=null;
+  });
+}
+
+
+function colorPickerHtml(color='white'){
+  return `<div class="color-picker" data-color="${color}">
+    <button type="button" class="color-tile" data-color="${color}" aria-label="色を選択"></button>
+    <div class="color-palette">
+      ${['white','blue','orange','purple','pink'].map(c=>`<button type="button" class="color-choice ${c===color?'selected':''}" data-color="${c}" aria-label="${c}"></button>`).join('')}
+    </div>
+  </div>`;
+}
+function setupColorPicker(picker,onChange){
+  const tile=picker.querySelector('.color-tile');
+  const choices=[...picker.querySelectorAll('.color-choice')];
+  tile.addEventListener('click',e=>{
+    e.stopPropagation();
+    document.querySelectorAll('.color-picker.open').forEach(p=>{if(p!==picker)p.classList.remove('open')});
+    picker.classList.toggle('open');
+  });
+  choices.forEach(btn=>btn.addEventListener('click',e=>{
+    e.stopPropagation();
+    const color=btn.dataset.color;
+    picker.dataset.color=color;
+    tile.dataset.color=color;
+    choices.forEach(x=>x.classList.toggle('selected',x===btn));
+    picker.classList.remove('open');
+    if(onChange) onChange(color);
+  }));
+}
+document.addEventListener('click',()=>document.querySelectorAll('.color-picker.open').forEach(p=>p.classList.remove('open')));
+
+const EVENT_COLORS={
+  white:{label:'',hex:'#ffffff'},
+  blue:{label:'青',hex:'#2491d6'},
+  orange:{label:'オレンジ',hex:'#f39a3f'},
+  purple:{label:'紫',hex:'#8b63d9'},
+  pink:{label:'ピンク',hex:'#e97fa8'}
+};
+function normalizeEvents(dayData){
+  if(!Array.isArray(dayData.events)){
+    const lines=String(dayData.schedule||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+    dayData.events=lines.map(text=>({text,color:'white'}));
+  }
+  dayData.events=dayData.events
+    .filter(e=>e&&typeof e.text==='string')
+    .map(e=>{
+      const migratedColor=e.color==='red'?'orange':e.color==='green'?'purple':e.color;
+      return {text:e.text,color:EVENT_COLORS[migratedColor]?migratedColor:'white'};
+    });
+  while(dayData.events.length<4) dayData.events.push({text:'',color:'white'});
+}
+function syncScheduleFromEvents(dayData){
+  normalizeEvents(dayData);
+  dayData.schedule=dayData.events.map(e=>e.text.trim()).filter(Boolean).join('\n');
+}
+function masterTodoOptions(selectedId=''){
+  let html='<option value="">から選択</option>';
+  (todosDB.items||[]).filter(t=>!t.done).forEach(t=>{
+    html+=`<option value="${t.id}" ${t.id===selectedId?'selected':''}>${escapeHtml(t.text||'(未入力)')}</option>`;
+  });
+  return html;
+}
+function newTodoId(){
+  const now=Date.now().toString(36);
+  const rand=Math.random().toString(36).slice(2,10);
+  return `todo-${now}-${rand}`;
+}
+
+function linkOrCreateTodo(todo){
+  const text=String(todo.text||'').trim();
+  if(!text){todo.todoId=null;return}
+  if(todo.todoId){
+    const linked=todosDB.items.find(t=>t.id===todo.todoId);
+    if(linked){linked.text=text;linked.done=!!todo.checked;return}
+    todo.todoId=null;
+  }
+  let found=todosDB.items.find(t=>!t.done&&String(t.text||'').trim()===text);
+  if(!found){
+    found={id:newTodoId(),text,done:!!todo.checked};
+    todosDB.items.push(found);
+  }
+  todo.todoId=found.id;
+}
+
+function syncDayTodosToMaster(dayData, previousTodos){
+  normalizeDayTodos(dayData);
+  const prev=Array.isArray(previousTodos)?previousTodos:[];
+  dayData.todos.forEach((todo,i)=>{
+    const old=prev[i]||{};
+    const oldId=old.todoId||null;
+
+    // Linked master TODO: checkbox and text changes are reflected everywhere.
+    if(oldId){
+      const master=todosDB.items.find(x=>x.id===oldId);
+      if(master){
+        if(todo.text.trim()){
+          master.text=todo.text;
+          master.done=todo.checked;
+          todo.todoId=master.id;
+        }else{
+          // Emptying a linked daily row only removes it from that day.
+          todo.todoId=null;
+        }
+      }
+    }
+
+    // If the row still carries a valid link, keep master completion synchronized.
+    if(todo.todoId){
+      const master=todosDB.items.find(x=>x.id===todo.todoId);
+      if(master){
+        master.text=todo.text;
+        master.done=todo.checked;
+      }else{
+        todo.todoId=null;
+      }
+    }
+  });
+}
+function openEdit(d){
+  selectedDate=d;
+  const {week,idx}=weekAndIndex(d);
+  const dayData=week.days[idx];
+  normalizeDayTodos(dayData);
+
+  document.getElementById('editTitle').textContent=
+    `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日（${DOW[d.getDay()]}）`;
+  normalizeEvents(dayData);
+  const eventList=document.getElementById('eventEditList');
+  eventList.innerHTML='';
+  dayData.events.forEach((event,i)=>{
+    const row=document.createElement('div');
+    row.className='event-edit-row';
+    row.dataset.color=event.color;
+    row.innerHTML=`${colorPickerHtml(event.color)}<input type="text" value="${escapeHtml(event.text||'')}" placeholder="">`;
+    setupColorPicker(row.querySelector('.color-picker'),color=>row.dataset.color=color);
+    eventList.appendChild(row);
+  });
+
+  const list=document.getElementById('todoEditList');
+  list.innerHTML='';
+  dayData.todos.forEach((t,i)=>{
+    const row=document.createElement('div');
+    row.className='todo-row';
+    const listId=`todoOptions_${selectedDate.getFullYear()}_${selectedDate.getMonth()+1}_${selectedDate.getDate()}_${i}`;
+    row.innerHTML=`<input type="checkbox" ${t.checked?'checked':''}>
+      <div class="todo-combo">
+        <input type="text" list="${listId}" value="${escapeHtml(t.text||'')}" placeholder="">
+        <datalist id="${listId}">
+          ${(todosDB.items||[]).filter(x=>!x.done).map(x=>`<option value="${escapeHtml(x.text||'')}"></option>`).join('')}
+        </datalist>
+      </div>`;
+    const input=row.querySelector('input[type="text"]');
+    input.addEventListener('change',()=>{
+      const found=(todosDB.items||[]).find(x=>!x.done&&String(x.text||'').trim()===input.value.trim());
+      if(found) t.todoId=found.id;
+    });
+    list.appendChild(row);
+  });
+
+  document.getElementById('modal').classList.add('open');
+  setTimeout(()=>{
+    const firstInput=document.querySelector('#eventEditList input[type="text"]');
+    if(firstInput) firstInput.focus();
+  },50);
+}
+function closeEdit(){document.getElementById('modal').classList.remove('open');selectedDate=null}
+document.getElementById('cancelBtn').onclick=closeEdit;
+document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeEdit()});
+document.getElementById('saveBtn').onclick=async()=>{
+  const saveBtn=document.getElementById('saveBtn');
+  if(!selectedDate){
+    setStatus('保存する日付が選択されていません','err');
+    return;
+  }
+
+  const originalText=saveBtn.textContent;
+  saveBtn.disabled=true;
+  saveBtn.textContent='保存中…';
+
+  try{
+    if(!todosDB||!Array.isArray(todosDB.items)) todosDB={items:[]};
+
+    const {week,idx}=weekAndIndex(selectedDate);
+    const dayData=week.days[idx];
+    normalizeDayTodos(dayData);
+    const previousTodos=dayData.todos.map(t=>({...t}));
+
+    const eventRows=[...document.querySelectorAll('#eventEditList .event-edit-row')];
+    dayData.events=eventRows.map(r=>{
+      const picker=r.querySelector('.color-picker');
+      const input=r.querySelector('input[type="text"]');
+      const color=(picker&&picker.dataset.color)||r.dataset.color||'white';
+      return {
+        color:EVENT_COLORS[color]?color:'white',
+        text:input?input.value:''
+      };
+    });
+    syncScheduleFromEvents(dayData);
+
+    const rows=[...document.querySelectorAll('#todoEditList .todo-row')];
+    dayData.todos=rows.map((r,i)=>{
+      const input=r.querySelector('input[type="text"]');
+      const check=r.querySelector('input[type="checkbox"]');
+      const todoText=input?input.value.trim():'';
+      const existing=todosDB.items.find(
+        x=>!x.done&&String(x.text||'').trim()===todoText
+      );
+      return {
+        checked:check?check.checked:false,
+        text:todoText,
+        todoId:(existing&&existing.id)||previousTodos[i]?.todoId||null
+      };
+    });
+
+    dayData.todos.forEach(linkOrCreateTodo);
+    syncDayTodosToMaster(dayData,previousTodos);
+
+    // クラウドより先に端末へ保存する
+    saveLocal();
+    closeEdit();
+    render();
+    setStatus('端末に保存しました。クラウド同期中…','ok');
+
+    await push();
+  }catch(e){
+    console.error('保存エラー',e);
+    setStatus('保存できませんでした','err');
+    alert('保存処理でエラーが発生しました。\n'+(e&&e.message?e.message:String(e)));
+  }finally{
+    saveBtn.disabled=false;
+    saveBtn.textContent=originalText;
+  }
+};
+document.getElementById('reloadBtn').onclick=pull;
+document.getElementById('todayBtn').onclick=()=>{
+  const now=new Date();
+  YEAR=now.getFullYear();
+  updateYearHeader();
+  render();
+  requestAnimationFrame(()=>{
+    const el=document.querySelector('.day.today');
+    if(el){
+      el.scrollIntoView({behavior:'smooth',block:'center'});
+      el.animate(
+        [{transform:'scale(1)'},{transform:'scale(1.04)'},{transform:'scale(1)'}],
+        {duration:500}
+      );
+    }
+  });
+};
+
+window.addEventListener('focus',()=>{if(navigator.onLine)pull()});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&navigator.onLine)pull()});
+
+
+function renderPrintCalendar(){
+  const root=document.getElementById('printCalendar');
+  root.innerHTML='<div class="excel-title">'+YEAR+'年　カレンダー</div>';
+  const grid=document.createElement('div');
+  grid.className='excel-year-grid';
+
+  // Excel版と同じ「4月始まり・3月終わり」
+  const months=[
+    {year:2026,month:3},{year:2026,month:4},{year:2026,month:5},
+    {year:2026,month:6},{year:2026,month:7},{year:2026,month:8},
+    {year:2026,month:9},{year:2026,month:10},{year:2026,month:11},
+    {year:2027,month:0},{year:2027,month:1},{year:2027,month:2}
+  ];
+
+  months.forEach(({year,month})=>{
+    const col=document.createElement('section');
+    col.className='excel-month';
+    col.innerHTML=`<div class="excel-month-name">${month+1}月</div>`;
+
+    const last=new Date(year,month+1,0).getDate();
+    for(let day=1;day<=31;day++){
+      const row=document.createElement('div');
+      row.className='excel-row';
+
+      if(day<=last){
+        const d=new Date(year,month,day);
+        const {week,idx}=weekAndIndex(d);
+        const dayData=week.days[idx]||{};
+        normalizeEvents(dayData);
+        const schedule=dayData.events.filter(e=>e.text.trim()).map(e=>e.text).join('／');
+        const todos=(dayData.todos||[]).filter(t=>t&&t.text&&!t.checked).map(t=>t.text);
+        const shown=schedule || todos.join('／');
+        const dateClass=d.getDay()===0?'sun':d.getDay()===6?'sat':'';
+        const eventClass=schedule?'has-event':(todos.length?'has-todo':'');
+        row.innerHTML=`<div class="excel-date ${dateClass}">${day}</div><div class="excel-event ${eventClass}">${escapeHtml(shown)}</div>`;
+      }else{
+        row.innerHTML='<div class="excel-date"></div><div class="excel-event"></div>';
+      }
+      col.appendChild(row);
+    }
+    grid.appendChild(col);
+  });
+  root.appendChild(grid);
+}
+
+document.getElementById('printBtn').onclick=()=>{
+  renderPrintCalendar();
+  window.print();
+};
+
+
+function updateYearHeader(){
+ document.getElementById('prevYearBtn').textContent='◀ '+(YEAR-1);
+ document.getElementById('currentYearLabel').textContent=YEAR+'年';
+ document.getElementById('nextYearBtn').textContent=(YEAR+1)+' ▶';
+ const title=document.getElementById('annualTitle');
+ if(title) title.textContent=YEAR+'年 年間カレンダー';
+ document.title=YEAR+'年 年間カレンダー｜進路相談室 ROUTE';
+}
+document.getElementById('prevYearBtn').onclick=()=>{YEAR--;updateYearHeader();render();};
+document.getElementById('nextYearBtn').onclick=()=>{YEAR++;updateYearHeader();render();};
+updateYearHeader();
+loadLocal();render();pull();setInterval(()=>{if(document.visibilityState==='visible'&&navigator.onLine)pull()},30000);
+
+</script>
+</body>
+</html>

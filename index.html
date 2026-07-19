@@ -46,6 +46,8 @@
     margin-bottom: 10px;
   }
   .title {
+    letter-spacing:.08em;
+
     font-size: 22px;
     font-weight: 800;
     letter-spacing: 0.5px;
@@ -301,8 +303,8 @@
   .color-tile{width:26px;height:26px;border:1px solid rgba(0,0,0,.16);border-radius:6px;padding:0;cursor:pointer;display:block}
   .color-tile[data-color="white"],.color-choice[data-color="white"]{background:#ffffff;border:1px solid #bfc7cf}
 .color-tile[data-color="blue"],.color-choice[data-color="blue"]{background:#2491d6}
-  .color-tile[data-color="red"],.color-choice[data-color="red"]{background:#e0574a}
-  .color-tile[data-color="green"],.color-choice[data-color="green"]{background:#1ac6b2}
+  .color-tile[data-color="orange"],.color-choice[data-color="orange"]{background:#f39a3f}
+  .color-tile[data-color="purple"],.color-choice[data-color="purple"]{background:#8b63d9}
   .color-tile[data-color="pink"],.color-choice[data-color="pink"]{background:#e97fa8}
   .color-palette{display:none;position:absolute;left:0;top:31px;z-index:50;background:#fff;border:1px solid #cfd9dd;border-radius:8px;padding:5px;gap:5px;box-shadow:0 5px 16px rgba(0,0,0,.18)}
   .color-picker.open .color-palette{display:flex}
@@ -325,7 +327,7 @@
     border-bottom:1px solid var(--line);
   }
   .unified-day-row:last-child{border-bottom:none}
-  .unified-day-row:nth-child(odd){background:#f7fbfd}
+  .unified-day-row:nth-child(odd){background:#ffffff}
   .unified-day-row.today{
     box-shadow:inset 4px 0 0 #ffb300;
     background:#fff8df;
@@ -733,7 +735,9 @@
 
     /* Header compact for print */
     .header { margin-bottom: 2mm !important; }
-    .title { font-size: 14pt !important; }
+    .title {
+    letter-spacing:.08em;
+ font-size: 14pt !important; }
     .title .sub { font-size: 8pt !important; margin-top: 1mm !important; }
     .datebox .field { padding: 1mm 3mm !important; }
     .datebox .field span.label { font-size: 7pt !important; }
@@ -867,6 +871,55 @@
     .planner-table, .master-todo { width: 100%; }
     .day-content textarea { font-size: 11px; }
   }
+
+/* 空白の予定マスは常に白 */
+.event:empty,
+.event-line:has(.event-text:placeholder-shown),
+.event-edit-row input:placeholder-shown,
+.event-text:placeholder-shown{
+  background:#ffffff !important;
+}
+.event-edit-row,
+.event-line{
+  background:#ffffff;
+}
+
+.unified-day-row,
+.unified-day-row:nth-child(odd),
+.unified-day-row:nth-child(even){
+  background:#ffffff;
+}
+
+
+/* 月間カレンダー基準の共通ボタン */
+.actions, .tabs{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  align-items:center;
+}
+.actions button, .actions a.btn,
+.tabs button, .tabs a{
+  font:700 12px inherit !important;
+  border:1px solid #cfd9dd !important;
+  background:#ffffff !important;
+  color:#5a7480 !important;
+  border-radius:7px !important;
+  padding:8px 11px !important;
+  text-decoration:none !important;
+  cursor:pointer;
+  box-shadow:none !important;
+}
+.actions button:hover, .actions a.btn:hover,
+.tabs button:hover, .tabs a:hover{
+  background:#f4f6f7 !important;
+}
+.actions .active, .tabs .active{
+  color:#ffffff !important;
+  border-color:transparent !important;
+  background:linear-gradient(135deg,#2491d6,#1ac6b2) !important;
+}
+
 </style>
 
 <script>
@@ -903,8 +956,8 @@ if (!window.storage) {
     <div class="header">
       <div class="title">
         <span>
-          WEEKLY PLANNER
-          <span class="sub">週間スケジュール ・ 共通TODO ・ メモ</span>
+          IBURI FAMILY CALENDAR
+          <span class="sub">Schedule • Tasks • Family</span>
         </span>
       </div>
       <div class="datebox">
@@ -925,8 +978,8 @@ if (!window.storage) {
       <button class="tab-btn" id="tabTodo">TODO</button>
       <button class="tab-btn" id="tabDone">完了</button>
       <button class="tab-btn active" id="tabSchedule">週間</button>
-      <a class="calendar-link" href="monthly_calendar.html">月間</a>
-      <a class="calendar-link" href="annual_calendar.html">年間</a>
+      <a class="calendar-link" href="monthly_calender.html">月間</a>
+      <a class="calendar-link" href="annual_calender.html">年間</a>
     </div>
 
     <div class="page active" id="pageSchedule">
@@ -1071,7 +1124,7 @@ function colorPickerHtml(color='white'){
   return `<div class="color-picker" data-color="${color}">
     <button type="button" class="color-tile" data-color="${color}" aria-label="色を選択"></button>
     <div class="color-palette">
-      ${['white','blue','red','green','pink'].map(c=>`<button type="button" class="color-choice ${c===color?'selected':''}" data-color="${c}" aria-label="${c}"></button>`).join('')}
+      ${['white','blue','orange','purple','pink'].map(c=>`<button type="button" class="color-choice ${c===color?'selected':''}" data-color="${c}" aria-label="${c}"></button>`).join('')}
     </div>
   </div>`;
 }
@@ -1098,8 +1151,8 @@ document.addEventListener('click',()=>document.querySelectorAll('.color-picker.o
 const EVENT_COLORS={
   white:{label:'',hex:'#ffffff'},
   blue:{label:'青',hex:'#2491d6'},
-  red:{label:'赤',hex:'#e0574a'},
-  green:{label:'緑',hex:'#1ac6b2'},
+  orange:{label:'オレンジ',hex:'#f39a3f'},
+  purple:{label:'紫',hex:'#8b63d9'},
   pink:{label:'ピンク',hex:'#e97fa8'}
 };
 function normalizeEvents(dayData){
@@ -1109,7 +1162,10 @@ function normalizeEvents(dayData){
   }
   dayData.events=dayData.events
     .filter(e=>e&&typeof e.text==='string')
-    .map(e=>({text:e.text,color:EVENT_COLORS[e.color]?e.color:'white'}));
+    .map(e=>{
+      const migratedColor=e.color==='red'?'orange':e.color==='green'?'purple':e.color;
+      return {text:e.text,color:EVENT_COLORS[migratedColor]?migratedColor:'white'};
+    });
   while(dayData.events.length<4) dayData.events.push({text:'',color:'white'});
 }
 function syncScheduleFromEvents(dayData){
