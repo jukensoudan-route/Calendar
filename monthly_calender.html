@@ -195,6 +195,25 @@ main{max-width:1200px;margin:auto;padding:14px}
   background:linear-gradient(135deg,#2491d6,#1ac6b2) !important;
 }
 
+
+/* 予定文字が空の行は、行背景・入力欄・色タイルを必ず白にする */
+.aligned-event-line.is-empty,
+.event-line.is-empty,
+.event-edit-row.is-empty{
+  background:#ffffff !important;
+}
+.aligned-event-line.is-empty .event-text,
+.event-line.is-empty .event-text,
+.event-edit-row.is-empty input[type="text"]{
+  background:#ffffff !important;
+}
+.aligned-event-line.is-empty .color-tile,
+.event-line.is-empty .color-tile,
+.event-edit-row.is-empty .color-tile{
+  background:#ffffff !important;
+  border:1px solid #bfc7cf !important;
+}
+
 </style>
 </head>
 <body>
@@ -284,6 +303,7 @@ function loadLocal(){
   try{ghCfg=JSON.parse(localStorage.getItem(GH_KEY)||'{}')||{}}catch(e){ghCfg={}}
 }
 function saveLocal(){
+  forceBlankEventsWhite();
   localStorage.setItem(WEEKS_KEY,JSON.stringify(weeksDB));
   localStorage.setItem(TODOS_KEY,JSON.stringify(todosDB));
 }
@@ -356,8 +376,24 @@ function normalizeEvents(dayData){
     });
   while(dayData.events.length<4) dayData.events.push({text:'',color:'white'});
 }
+function forceBlankEventsWhite(){
+  Object.values(weeksDB||{}).forEach(week=>{
+    if(!week||!Array.isArray(week.days)) return;
+    week.days.forEach(day=>{
+      normalizeEvents(day);
+      day.events.forEach(e=>{
+        if(!String(e.text||'').trim()) e.color='white';
+      });
+      day.schedule=day.events.map(e=>String(e.text||'').trim()).filter(Boolean).join('\n');
+    });
+  });
+}
+
 function syncScheduleFromEvents(dayData){
   normalizeEvents(dayData);
+  dayData.events.forEach(e=>{
+    if(!String(e.text||'').trim()) e.color='white';
+  });
   dayData.schedule=dayData.events.map(e=>e.text.trim()).filter(Boolean).join('\n');
 }
 function masterTodoOptions(selectedId=''){
@@ -536,7 +572,7 @@ function openEdit(d){
   eventList.innerHTML='';
   dayData.events.forEach((event,i)=>{
     const row=document.createElement('div');
-    row.className='event-edit-row';
+    row.className='event-edit-row'+(String(e.text||'').trim()?'':' is-empty');
     row.dataset.color=event.color;
     row.innerHTML=`${colorPickerHtml(event.color)}<input type="text" value="${escapeHtml(event.text||'')}" placeholder="">`;
     setupColorPicker(row.querySelector('.color-picker'),color=>row.dataset.color=color);

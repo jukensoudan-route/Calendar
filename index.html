@@ -920,6 +920,47 @@
   background:linear-gradient(135deg,#2491d6,#1ac6b2) !important;
 }
 
+
+/* 予定文字が空の行は、行背景・入力欄・色タイルを必ず白にする */
+.aligned-event-line.is-empty,
+.event-line.is-empty,
+.event-edit-row.is-empty{
+  background:#ffffff !important;
+}
+.aligned-event-line.is-empty .event-text,
+.event-line.is-empty .event-text,
+.event-edit-row.is-empty input[type="text"]{
+  background:#ffffff !important;
+}
+.aligned-event-line.is-empty .color-tile,
+.event-line.is-empty .color-tile,
+.event-edit-row.is-empty .color-tile{
+  background:#ffffff !important;
+  border:1px solid #bfc7cf !important;
+}
+
+
+/* 週間移動ボタン：月間・年間ナビと同じ配色・サイズ */
+.range-inputs .week-nav-btn{
+  font:700 12px inherit;
+  border:1px solid #cfd9dd;
+  background:#ffffff;
+  color:#5a7480;
+  border-radius:7px;
+  padding:8px 11px;
+  min-height:34px;
+  cursor:pointer;
+  box-shadow:none;
+}
+.range-inputs .week-nav-btn:hover{
+  background:#f4f6f7;
+}
+.range-inputs .week-nav-btn.active{
+  color:#ffffff;
+  border-color:transparent;
+  background:linear-gradient(135deg,#2491d6,#1ac6b2);
+}
+
 </style>
 
 <script>
@@ -967,9 +1008,9 @@ if (!window.storage) {
             <span class="start-date" id="startDateLabel"></span>
             <span class="range-sep">〜</span>
             <input type="date" id="endDateInput">
-            <button id="prevWeekBtn" type="button">前の週</button>
-            <button id="todayBtn" type="button">今日</button>
-            <button id="nextWeekBtn" type="button">次の週</button>
+            <button id="prevWeekBtn" class="week-nav-btn" type="button">前の週</button>
+            <button id="todayBtn" class="week-nav-btn active" type="button">今日</button>
+            <button id="nextWeekBtn" class="week-nav-btn" type="button">次の週</button>
           </div>
         </div>
       </div>
@@ -1172,8 +1213,24 @@ function normalizeEvents(dayData){
     });
   while(dayData.events.length<4) dayData.events.push({text:'',color:'white'});
 }
+function forceBlankEventsWhite(){
+  Object.values(weeksDB||{}).forEach(week=>{
+    if(!week||!Array.isArray(week.days)) return;
+    week.days.forEach(day=>{
+      normalizeEvents(day);
+      day.events.forEach(e=>{
+        if(!String(e.text||'').trim()) e.color='white';
+      });
+      day.schedule=day.events.map(e=>String(e.text||'').trim()).filter(Boolean).join('\n');
+    });
+  });
+}
+
 function syncScheduleFromEvents(dayData){
   normalizeEvents(dayData);
+  dayData.events.forEach(e=>{
+    if(!String(e.text||'').trim()) e.color='white';
+  });
   dayData.schedule=dayData.events.map(e=>e.text.trim()).filter(Boolean).join('\n');
 }
 function masterTodoOptions(selectedId=''){
@@ -1299,6 +1356,7 @@ function linkOrCreateTodo(todo){
     }
 
     async function saveDB() {
+      forceBlankEventsWhite();
       const indicator = document.getElementById('saveIndicator');
       if (!window.storage || typeof window.storage.set !== 'function') {
         indicator.textContent = 'この画面内でのみ保持されます（自動保存は利用できません）';
@@ -1397,11 +1455,14 @@ function linkOrCreateTodo(todo){
 
         for (let j = 0; j < 4; j++) {
           const event = week.days[i].events[j];
+          const hasEventText=!!String(event.text||'').trim();
+          if(!hasEventText) event.color='white';
+          const displayColor=hasEventText?(event.color||'white'):'white';
           const eventLine = document.createElement('div');
-          eventLine.className = 'aligned-event-line';
-          eventLine.dataset.color = event.color || 'white';
+          eventLine.className = 'aligned-event-line' + (hasEventText ? '' : ' is-empty');
+          eventLine.dataset.color = displayColor;
           eventLine.innerHTML = `
-            ${colorPickerHtml(event.color || 'white')}
+            ${colorPickerHtml(displayColor)}
             <input class="event-text" type="text" placeholder="">
           `;
 
@@ -1410,19 +1471,33 @@ function linkOrCreateTodo(todo){
           eventInput.value = event.text || '';
 
           setupColorPicker(picker, color => {
-            event.color = color;
-            eventLine.dataset.color = color;
+            const hasText=!!String(eventInput.value||'').trim();
+            event.color=hasText?color:'white';
+            eventLine.dataset.color=event.color;
+            eventLine.classList.toggle('is-empty',!hasText);
+            const tile=picker.querySelector('.color-tile');
+            if(tile) tile.dataset.color=event.color;
+            picker.dataset.color=event.color;
+            picker.querySelectorAll('.color-choice').forEach(btn=>{
+              btn.classList.toggle('selected',btn.dataset.color===event.color);
+            });
             syncScheduleFromEvents(week.days[i]);
             scheduleSave();
           });
 
           eventInput.addEventListener('input', e => {
             event.text = e.target.value;
-            if(!event.text.trim()){
+            const isEmpty=!event.text.trim();
+            eventLine.classList.toggle('is-empty',isEmpty);
+            if(isEmpty){
               event.color='white';
               eventLine.dataset.color='white';
+              picker.dataset.color='white';
               const tile=picker.querySelector('.color-tile');
               if(tile) tile.dataset.color='white';
+              picker.querySelectorAll('.color-choice').forEach(btn=>{
+                btn.classList.toggle('selected',btn.dataset.color==='white');
+              });
             }
             syncScheduleFromEvents(week.days[i]);
             scheduleSave();
@@ -1571,6 +1646,22 @@ function linkOrCreateTodo(todo){
       currentWeekStart = fmtDateInput(startD);
       render();
       scheduleSave();
+    });
+
+    function moveWeekBy(days){
+      const current=new Date(currentWeekStart+'T00:00:00');
+      current.setDate(current.getDate()+days);
+      currentWeekStart=fmtDateInput(current);
+      render();
+      scheduleSave();
+    }
+
+    document.getElementById('prevWeekBtn').addEventListener('click',()=>{
+      moveWeekBy(-7);
+    });
+
+    document.getElementById('nextWeekBtn').addEventListener('click',()=>{
+      moveWeekBy(7);
     });
 
     document.getElementById('todayBtn').addEventListener('click',()=>{
