@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>月間カレンダー｜進路相談室 ROUTE</title>
+<title>月間カレンダー｜IBURI FAMILY</title>
 <style>
 :root{
   --blue:#2491d6;--teal:#1ac6b2;--navy:#16323e;--slate:#5a7480;
@@ -30,7 +30,7 @@ main{max-width:1200px;margin:auto;padding:14px}
 .week-head .sun{background:#e38a80}.week-head .sat{background:#5aa8d8}
 .day{min-height:135px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:6px;background:#fff;cursor:pointer;overflow:hidden}
 .day:nth-child(7n){border-right:none}
-.day.empty{background:#f7f9fa;cursor:default}
+.day.empty{background:#fff;cursor:default}
 .day:hover:not(.empty){background:#f4fbfd}
 .num{font-size:13px;font-weight:800;margin-bottom:4px}
 .day.sun .num{color:var(--sun)}.day.sat .num{color:var(--sat)}
@@ -117,7 +117,7 @@ main{max-width:1200px;margin:auto;padding:14px}
     padding:2mm;overflow:hidden;background:#fff
   }
   .excel-day:nth-child(7n+1){border-left:0.35mm solid #78909a}
-  .excel-day.empty{background:#f2f2f2}
+  .excel-day.empty{background:#fff}
   .excel-num{font-size:10pt;font-weight:700;margin-bottom:1mm}
   .excel-day.sun .excel-num{color:#c00000}
   .excel-day.sat .excel-num{color:#0070c0}
@@ -162,11 +162,11 @@ main{max-width:1200px;margin:auto;padding:14px}
       <div class="sub">週間カレンダーと同じGitHub Gistで自動同期</div>
     </div>
     <div class="actions">
-      <a class="btn" href="./?view=todo">TODO</a>
-      <a class="btn" href="./?view=done">完了</a>
       <a class="btn" href="./">週間</a>
       <a class="btn" href="monthly_calendar.html">月間</a>
       <a class="btn" href="annual_calendar.html">年間</a>
+      <a class="btn" href="./?view=todo">TODO</a>
+      <a class="btn" href="./?view=done">完了</a>
       <button id="reloadBtn">最新を読込</button>
       <button id="printBtn">印刷</button>
     </div>
@@ -234,7 +234,10 @@ function weekAndIndex(date){
 function setStatus(t,k=''){const e=document.getElementById('status');e.textContent=t;e.className='status '+k}
 function loadLocal(){
   try{weeksDB=JSON.parse(localStorage.getItem(WEEKS_KEY)||'{}')||{}}catch(e){weeksDB={}}
-  try{todosDB=JSON.parse(localStorage.getItem(TODOS_KEY)||'{"items":[]}')||{items:[]}}catch(e){todosDB={items:[]}}
+  try{
+    todosDB=JSON.parse(localStorage.getItem(TODOS_KEY)||'{"items":[]}')||{items:[]};
+    if(!todosDB||!Array.isArray(todosDB.items)) todosDB={items:[]};
+  }catch(e){todosDB={items:[]}}
   try{ghCfg=JSON.parse(localStorage.getItem(GH_KEY)||'{}')||{}}catch(e){ghCfg={}}
 }
 function saveLocal(){
@@ -316,6 +319,12 @@ function masterTodoOptions(selectedId=''){
   });
   return html;
 }
+function newTodoId(){
+  const now=Date.now().toString(36);
+  const rand=Math.random().toString(36).slice(2,10);
+  return `todo-${now}-${rand}`;
+}
+
 function linkOrCreateTodo(todo){
   const text=String(todo.text||'').trim();
   if(!text){todo.todoId=null;return}
@@ -385,6 +394,7 @@ async function pull(){
     const parsed=JSON.parse(content);
     if(parsed.weeks)weeksDB=parsed.weeks;
     if(parsed.todos)todosDB=parsed.todos;
+    if(!todosDB||!Array.isArray(todosDB.items)) todosDB={items:[]};
     saveLocal();render();
     setStatus('最新予定を読み込みました：'+new Date().toLocaleTimeString('ja-JP'),'ok');
   }catch(e){console.error(e);setStatus('読込に失敗しました。接続設定を確認してください','err');render()}
@@ -519,6 +529,8 @@ document.getElementById('saveBtn').onclick=async()=>{
   saveBtn.textContent='保存中…';
 
   try{
+    if(!todosDB||!Array.isArray(todosDB.items)) todosDB={items:[]};
+
     const {week,idx}=weekAndIndex(selectedDate);
     const dayData=week.days[idx];
     normalizeDayTodos(dayData);
@@ -527,12 +539,8 @@ document.getElementById('saveBtn').onclick=async()=>{
     const eventRows=[...document.querySelectorAll('#eventEditList .event-edit-row')];
     dayData.events=eventRows.map(r=>{
       const picker=r.querySelector('.color-picker');
-      const select=r.querySelector('select');
       const input=r.querySelector('input[type="text"]');
-      const color=(picker&&picker.dataset.color)||
-                  r.dataset.color||
-                  (select&&select.value)||
-                  'white';
+      const color=(picker&&picker.dataset.color)||r.dataset.color||'white';
       return {
         color:EVENT_COLORS[color]?color:'white',
         text:input?input.value:''
@@ -545,7 +553,7 @@ document.getElementById('saveBtn').onclick=async()=>{
       const input=r.querySelector('input[type="text"]');
       const check=r.querySelector('input[type="checkbox"]');
       const todoText=input?input.value.trim():'';
-      const existing=(todosDB.items||[]).find(
+      const existing=todosDB.items.find(
         x=>!x.done&&String(x.text||'').trim()===todoText
       );
       return {
@@ -558,18 +566,17 @@ document.getElementById('saveBtn').onclick=async()=>{
     dayData.todos.forEach(linkOrCreateTodo);
     syncDayTodosToMaster(dayData,previousTodos);
 
-    // まず端末内へ確実に保存し、画面をすぐ更新する
+    // クラウドより先に端末へ保存する
     saveLocal();
     closeEdit();
     render();
     setStatus('端末に保存しました。クラウド同期中…','ok');
 
-    // クラウド同期はその後に実行
     await push();
   }catch(e){
     console.error('保存エラー',e);
-    setStatus('保存できませんでした。ページを再読み込みしてください','err');
-    alert('保存処理でエラーが発生しました。\n'+(e&&e.message?e.message:e));
+    setStatus('保存できませんでした','err');
+    alert('保存処理でエラーが発生しました。\n'+(e&&e.message?e.message:String(e)));
   }finally{
     saveBtn.disabled=false;
     saveBtn.textContent=originalText;
