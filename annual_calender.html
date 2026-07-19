@@ -485,7 +485,9 @@ function normalizeEvents(dayData){
     .filter(e=>e&&typeof e.text==='string')
     .map(e=>{
       const migratedColor=e.color==='red'?'orange':e.color==='green'?'purple':e.color;
-      return {text:e.text,color:EVENT_COLORS[migratedColor]?migratedColor:'white'};
+      const cleanText=String(e.text||'');
+      const color=cleanText.trim()? (EVENT_COLORS[migratedColor]?migratedColor:'white') : 'white';
+      return {text:cleanText,color};
     });
   while(dayData.events.length<4) dayData.events.push({text:'',color:'white'});
 }
@@ -630,9 +632,10 @@ document.getElementById('saveBtn').onclick=async()=>{
       const picker=r.querySelector('.color-picker');
       const input=r.querySelector('input[type="text"]');
       const color=(picker&&picker.dataset.color)||r.dataset.color||'white';
+      const text=input?input.value:'';
       return {
-        color:EVENT_COLORS[color]?color:'white',
-        text:input?input.value:''
+        color:text.trim()?(EVENT_COLORS[color]?color:'white'):'white',
+        text
       };
     });
     syncScheduleFromEvents(dayData);

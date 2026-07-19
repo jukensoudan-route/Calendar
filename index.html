@@ -956,7 +956,7 @@ if (!window.storage) {
     <div class="header">
       <div class="title">
         <span>
-          IBURI FAMILY CALENDAR
+          IBURI FAMILY
           <span class="sub">Schedule • Tasks • Family</span>
         </span>
       </div>
@@ -967,7 +967,9 @@ if (!window.storage) {
             <span class="start-date" id="startDateLabel"></span>
             <span class="range-sep">〜</span>
             <input type="date" id="endDateInput">
-            <button id="todayBtn" type="button" style="margin-left:6px;padding:4px 10px;border:1px solid #cfd9dd;border-radius:6px;background:#f4fbfd;font-weight:700;cursor:pointer;">今日</button>
+            <button id="prevWeekBtn" type="button">前の週</button>
+            <button id="todayBtn" type="button">今日</button>
+            <button id="nextWeekBtn" type="button">次の週</button>
           </div>
         </div>
       </div>
@@ -1164,7 +1166,9 @@ function normalizeEvents(dayData){
     .filter(e=>e&&typeof e.text==='string')
     .map(e=>{
       const migratedColor=e.color==='red'?'orange':e.color==='green'?'purple':e.color;
-      return {text:e.text,color:EVENT_COLORS[migratedColor]?migratedColor:'white'};
+      const cleanText=String(e.text||'');
+      const color=cleanText.trim()? (EVENT_COLORS[migratedColor]?migratedColor:'white') : 'white';
+      return {text:cleanText,color};
     });
   while(dayData.events.length<4) dayData.events.push({text:'',color:'white'});
 }
@@ -1414,6 +1418,12 @@ function linkOrCreateTodo(todo){
 
           eventInput.addEventListener('input', e => {
             event.text = e.target.value;
+            if(!event.text.trim()){
+              event.color='white';
+              eventLine.dataset.color='white';
+              const tile=picker.querySelector('.color-tile');
+              if(tile) tile.dataset.color='white';
+            }
             syncScheduleFromEvents(week.days[i]);
             scheduleSave();
           });
