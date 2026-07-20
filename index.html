@@ -313,7 +313,7 @@
   .color-tile[data-color="white"],.color-choice[data-color="white"]{background:#ffffff;border:1px solid #bfc7cf}
 .color-tile[data-color="blue"],.color-choice[data-color="blue"]{background:#2491d6}
   .color-tile[data-color="red"],.color-choice[data-color="red"]{background:#e0574a}
-  .color-tile[data-color="green"],.color-choice[data-color="green"]{background:#1ac6b2}
+  .color-tile[data-color="purple"],.color-choice[data-color="purple"]{background:#8e63ce}
   .color-tile[data-color="pink"],.color-choice[data-color="pink"]{background:#e97fa8}
   .color-palette{display:none;position:absolute;left:0;top:31px;z-index:50;background:#fff;border:1px solid #cfd9dd;border-radius:8px;padding:5px;gap:5px;box-shadow:0 5px 16px rgba(0,0,0,.18)}
   .color-picker.open .color-palette{display:flex}
@@ -1084,7 +1084,7 @@ function colorPickerHtml(color='white'){
   return `<div class="color-picker" data-color="${color}">
     <button type="button" class="color-tile" data-color="${color}" aria-label="色を選択"></button>
     <div class="color-palette">
-      ${['white','blue','red','green','pink'].map(c=>`<button type="button" class="color-choice ${c===color?'selected':''}" data-color="${c}" aria-label="${c}"></button>`).join('')}
+      ${['white','blue','red','purple','pink'].map(c=>`<button type="button" class="color-choice ${c===color?'selected':''}" data-color="${c}" aria-label="${c}"></button>`).join('')}
     </div>
   </div>`;
 }
@@ -1112,7 +1112,8 @@ const EVENT_COLORS={
   white:{label:'',hex:'#ffffff'},
   blue:{label:'青',hex:'#2491d6'},
   red:{label:'赤',hex:'#e0574a'},
-  green:{label:'緑',hex:'#1ac6b2'},
+  purple:{label:'紫',hex:'#8e63ce'},
+  green:{label:'紫',hex:'#8e63ce'},
   pink:{label:'ピンク',hex:'#e97fa8'}
 };
 function normalizeEvents(dayData){
@@ -1122,7 +1123,7 @@ function normalizeEvents(dayData){
   }
   dayData.events=dayData.events
     .filter(e=>e&&typeof e.text==='string')
-    .map(e=>({text:e.text,color:EVENT_COLORS[e.color]?e.color:'white'}));
+    .map(e=>({text:e.text,color:e.color==='green'?'purple':(EVENT_COLORS[e.color]?e.color:'white')}));
   while(dayData.events.length<4) dayData.events.push({text:'',color:'white'});
 }
 function syncScheduleFromEvents(dayData){
@@ -1136,6 +1137,27 @@ function masterTodoOptions(selectedId=''){
   });
   return html;
 }
+function syncLinkedTodosFromMaster(){
+  if(!todosDB||!Array.isArray(todosDB.items)) todosDB={items:[]};
+  const masterMap=new Map(todosDB.items.map(t=>[t.id,t]));
+  Object.values(weeksDB||{}).forEach(week=>{
+    if(!week||!Array.isArray(week.days)) return;
+    week.days.forEach(day=>{
+      if(!day||!Array.isArray(day.todos)) return;
+      day.todos.forEach(todo=>{
+        if(!todo||!todo.todoId) return;
+        const master=masterMap.get(todo.todoId);
+        if(master){
+          todo.text=String(master.text||'');
+          todo.checked=!!master.done;
+        }else{
+          todo.todoId=null;
+        }
+      });
+    });
+  });
+}
+
 function linkOrCreateTodo(todo){
   const text=String(todo.text||'').trim();
   if(!text){todo.todoId=null;return}
@@ -1240,24 +1262,40 @@ function linkOrCreateTodo(todo){
       } catch (e) { /* storage unavailable */ }
       if (!todosDB || !Array.isArray(todosDB.items)) todosDB = { items: [] };
       if (!weeksDB || typeof weeksDB !== 'object') weeksDB = {};
+      syncLinkedTodosFromMaster();
       render();
+    }
+
+    function persistLocalNow() {
+      syncLinkedTodosFromMaster();
+      localStorage.setItem(WEEKS_KEY, JSON.stringify(weeksDB));
+      localStorage.setItem(TODOS_KEY, JSON.stringify(todosDB));
     }
 
     function scheduleSave() {
       lastUserEditAt = Date.now();
       const indicator = document.getElementById('saveIndicator');
-      indicator.textContent = '編集中...';
+      indicator.textContent = '保存中...';
+      try {
+        persistLocalNow();
+        indicator.textContent = '端末に保存しました';
+      } catch (e) {
+        console.error('local save error:', e);
+        indicator.textContent = '端末への保存に失敗しました';
+      }
       if (saveTimer) clearTimeout(saveTimer);
       saveTimer = setTimeout(saveDB, 600);
     }
 
     async function saveDB() {
+      syncLinkedTodosFromMaster();
       const indicator = document.getElementById('saveIndicator');
       if (!window.storage || typeof window.storage.set !== 'function') {
         indicator.textContent = 'この画面内でのみ保持されます（自動保存は利用できません）';
         return;
       }
       try {
+        persistLocalNow();
         await window.storage.set(WEEKS_KEY, JSON.stringify(weeksDB), false);
         await window.storage.set(TODOS_KEY, JSON.stringify(todosDB), false);
         indicator.textContent = 'データベースに保存しました';
@@ -1297,6 +1335,7 @@ function linkOrCreateTodo(todo){
     }
 
     function render() {
+      syncLinkedTodosFromMaster();
       const week = currentWeek();
       const startD = new Date(currentWeekStart + 'T00:00:00');
       const endD = new Date(startD);
@@ -1462,6 +1501,7 @@ function linkOrCreateTodo(todo){
           const val = e.target.value;
           if (item) {
             item.text = val;
+            syncLinkedTodosFromMaster();
           } else if (val.trim()) {
             const created = { id: newTodoId(), text: val, done: false };
             todosDB.items.push(created);
@@ -2265,6 +2305,19 @@ function linkOrCreateTodo(todo){
 
     loadGoogleClientId();
     startGoogleAutoSync();
+
+    window.addEventListener('pagehide', () => {
+      try { persistLocalNow(); } catch (e) { console.error(e); }
+    });
+    window.addEventListener('storage', e => {
+      if (e.key !== WEEKS_KEY && e.key !== TODOS_KEY) return;
+      try {
+        weeksDB = JSON.parse(localStorage.getItem(WEEKS_KEY) || '{}') || {};
+        todosDB = JSON.parse(localStorage.getItem(TODOS_KEY) || '{"items":[]}') || {items:[]};
+        syncLinkedTodosFromMaster();
+        render();
+      } catch (err) { console.error('storage sync error', err); }
+    });
 
     initializePlanner();
 

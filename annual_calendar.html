@@ -59,7 +59,7 @@ main{max-width:1500px;margin:auto;padding:14px}
   .color-tile[data-color="white"],.color-choice[data-color="white"]{background:#ffffff;border:1px solid #bfc7cf}
 .color-tile[data-color="blue"],.color-choice[data-color="blue"]{background:#2491d6}
   .color-tile[data-color="red"],.color-choice[data-color="red"]{background:#e0574a}
-  .color-tile[data-color="green"],.color-choice[data-color="green"]{background:#1ac6b2}
+  .color-tile[data-color="purple"],.color-choice[data-color="purple"]{background:#8e63ce}
   .color-tile[data-color="pink"],.color-choice[data-color="pink"]{background:#e97fa8}
   .color-palette{display:none;position:absolute;left:0;top:31px;z-index:50;background:#fff;border:1px solid #cfd9dd;border-radius:8px;padding:5px;gap:5px;box-shadow:0 5px 16px rgba(0,0,0,.18)}
   .color-picker.open .color-palette{display:flex}
@@ -69,7 +69,7 @@ main{max-width:1500px;margin:auto;padding:14px}
 .event-edit-row input{flex:1;border:1px solid #cfd9dd;border-radius:6px;padding:7px;font:12px inherit}
 .todo-row select{flex:1;border:1px solid #cfd9dd;border-radius:6px;padding:7px;font:11px inherit}
 .todo-row input[type="text"]{flex:1.4}
-.event.blue{border-left-color:#2491d6}.event.red{border-left-color:#e0574a}.event.green{border-left-color:#1ac6b2}.event.pink{border-left-color:#e97fa8}
+.event.blue{border-left-color:#2491d6}.event.red{border-left-color:#e0574a}.event.purple{border-left-color:#8e63ce}.event.green{border-left-color:#8e63ce}.event.pink{border-left-color:#e97fa8}
 
 .todo-list{display:grid;gap:6px;margin-top:6px}
 .todo-row{display:flex;gap:6px;align-items:center}
@@ -274,8 +274,10 @@ function loadLocal(){
     if(!todosDB||!Array.isArray(todosDB.items)) todosDB={items:[]};
   }catch(e){todosDB={items:[]}}
   try{ghCfg=JSON.parse(localStorage.getItem(GH_KEY)||'{}')||{}}catch(e){ghCfg={}}
+  syncLinkedTodosFromMaster();
 }
 function saveLocal(){
+  syncLinkedTodosFromMaster();
   localStorage.setItem(WEEKS_KEY,JSON.stringify(weeksDB));
   localStorage.setItem(TODOS_KEY,JSON.stringify(todosDB));
 }
@@ -360,6 +362,7 @@ function renderSharedTodoPanels(){
 }
 
 function render(){
+  syncLinkedTodosFromMaster();
   renderSharedTodoPanels();
   const root=document.getElementById('calendar');root.innerHTML='';
   for(let month=0;month<12;month++){
@@ -407,7 +410,7 @@ function colorPickerHtml(color='white'){
   return `<div class="color-picker" data-color="${color}">
     <button type="button" class="color-tile" data-color="${color}" aria-label="色を選択"></button>
     <div class="color-palette">
-      ${['white','blue','red','green','pink'].map(c=>`<button type="button" class="color-choice ${c===color?'selected':''}" data-color="${c}" aria-label="${c}"></button>`).join('')}
+      ${['white','blue','red','purple','pink'].map(c=>`<button type="button" class="color-choice ${c===color?'selected':''}" data-color="${c}" aria-label="${c}"></button>`).join('')}
     </div>
   </div>`;
 }
@@ -435,7 +438,8 @@ const EVENT_COLORS={
   white:{label:'',hex:'#ffffff'},
   blue:{label:'青',hex:'#2491d6'},
   red:{label:'赤',hex:'#e0574a'},
-  green:{label:'緑',hex:'#1ac6b2'},
+  purple:{label:'紫',hex:'#8e63ce'},
+  green:{label:'紫',hex:'#8e63ce'},
   pink:{label:'ピンク',hex:'#e97fa8'}
 };
 function normalizeEvents(dayData){
@@ -445,7 +449,7 @@ function normalizeEvents(dayData){
   }
   dayData.events=dayData.events
     .filter(e=>e&&typeof e.text==='string')
-    .map(e=>({text:e.text,color:EVENT_COLORS[e.color]?e.color:'white'}));
+    .map(e=>({text:e.text,color:e.color==='green'?'purple':(EVENT_COLORS[e.color]?e.color:'white')}));
   while(dayData.events.length<4) dayData.events.push({text:'',color:'white'});
 }
 function syncScheduleFromEvents(dayData){
@@ -463,6 +467,27 @@ function newTodoId(){
   const now=Date.now().toString(36);
   const rand=Math.random().toString(36).slice(2,10);
   return `todo-${now}-${rand}`;
+}
+
+function syncLinkedTodosFromMaster(){
+  if(!todosDB||!Array.isArray(todosDB.items)) todosDB={items:[]};
+  const masterMap=new Map(todosDB.items.map(t=>[t.id,t]));
+  Object.values(weeksDB||{}).forEach(week=>{
+    if(!week||!Array.isArray(week.days)) return;
+    week.days.forEach(day=>{
+      if(!day||!Array.isArray(day.todos)) return;
+      day.todos.forEach(todo=>{
+        if(!todo||!todo.todoId) return;
+        const master=masterMap.get(todo.todoId);
+        if(master){
+          todo.text=String(master.text||'');
+          todo.checked=!!master.done;
+        }else{
+          todo.todoId=null;
+        }
+      });
+    });
+  });
 }
 
 function linkOrCreateTodo(todo){
@@ -648,6 +673,19 @@ document.getElementById('todayBtn').onclick=()=>{
   });
 };
 
+window.addEventListener('storage',e=>{
+  if(e.key!==WEEKS_KEY&&e.key!==TODOS_KEY)return;
+  if(document.getElementById('modal').classList.contains('open'))return;
+  loadLocal();
+  render();
+  setStatus('別のカレンダーでの変更を反映しました','ok');
+});
+window.addEventListener('pageshow',()=>{
+  if(!document.getElementById('modal').classList.contains('open')){
+    loadLocal();
+    render();
+  }
+});
 window.addEventListener('focus',()=>{if(navigator.onLine)pull()});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&navigator.onLine)pull()});
 
@@ -660,10 +698,8 @@ function renderPrintCalendar(){
 
   // Excel版と同じ「4月始まり・3月終わり」
   const months=[
-    {year:2026,month:3},{year:2026,month:4},{year:2026,month:5},
-    {year:2026,month:6},{year:2026,month:7},{year:2026,month:8},
-    {year:2026,month:9},{year:2026,month:10},{year:2026,month:11},
-    {year:2027,month:0},{year:2027,month:1},{year:2027,month:2}
+    ...Array.from({length:9},(_,i)=>({year:YEAR,month:i+3})),
+    ...Array.from({length:3},(_,i)=>({year:YEAR+1,month:i}))
   ];
 
   months.forEach(({year,month})=>{
