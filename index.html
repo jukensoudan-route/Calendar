@@ -1017,15 +1017,14 @@ body{padding-bottom:86px!important}
   .datebox .range-inputs{
     display:grid!important;
     grid-template-columns:1fr 1fr!important;
-    grid-template-areas:"prev next" "range range" "today today"!important;
+    grid-template-areas:"prev next" "range range"!important;
     gap:7px!important;
   }
   #prevWeekBtn{grid-area:prev}
   #nextWeekBtn{grid-area:next}
-  #todayBtn{grid-area:today;display:block!important}
-  .start-date{grid-area:range;justify-self:center;padding-right:120px!important;white-space:nowrap!important}
+  .start-date{grid-area:range;justify-self:center;padding-right:118px!important;white-space:nowrap!important}
   .range-sep{grid-area:range;justify-self:center;z-index:2;margin:0!important}
-  #endDateInput{grid-area:range;justify-self:center;margin-left:120px!important;width:116px!important;text-align:center!important}
+  #endDateInput{grid-area:range;justify-self:center;margin-left:118px!important;width:114px!important;text-align:center!important}
 }
 .tabs.bottom-nav{position:fixed!important;transform:none!important}
 .tabs.bottom-nav #bottomSaveBtn{background:rgba(255,255,255,.18)!important;color:#fff!important;font-weight:800!important}
@@ -1092,6 +1091,56 @@ body{padding-bottom:86px!important}
     height:28px !important;
   }
 }
+
+/* v7: TODOプルダウンボタンは「▼」だけを表示 */
+.aligned-todo-line .mini-pick{
+  display:block !important;
+  visibility:visible !important;
+  opacity:1 !important;
+  width:26px !important;
+  min-width:26px !important;
+  height:26px !important;
+  flex:0 0 26px !important;
+  border:1px solid #9ab7c2 !important;
+  border-radius:6px !important;
+  background-color:#f4fbfd !important;
+  color:transparent !important;
+  text-shadow:none !important;
+  text-indent:-9999px !important;
+  font-size:0 !important;
+  padding:0 !important;
+  cursor:pointer !important;
+  -webkit-appearance:none !important;
+  -moz-appearance:none !important;
+  appearance:none !important;
+  background-image:linear-gradient(45deg,transparent 50%,#315764 50%),linear-gradient(135deg,#315764 50%,transparent 50%) !important;
+  background-position:calc(50% - 3px) 11px,calc(50% + 3px) 11px !important;
+  background-size:6px 6px,6px 6px !important;
+  background-repeat:no-repeat !important;
+}
+.aligned-todo-line .mini-pick option{
+  color:#1e2b33 !important;
+  font-size:12px !important;
+  text-indent:0 !important;
+}
+@media(max-width:700px){
+  .aligned-todo-line .mini-pick{
+    width:26px !important;
+    min-width:26px !important;
+    height:28px !important;
+    flex-basis:26px !important;
+    background-position:calc(50% - 3px) 12px,calc(50% + 3px) 12px !important;
+  }
+}
+
+/* v8: 週間の「今日」ボタンを削除。予定欄は色四角のみ、TODOだけ▼を表示 */
+.aligned-event-line select,
+.aligned-event-line .event-dropdown,
+.aligned-event-line .dropdown-button{display:none!important;}
+.aligned-event-line .color-picker{display:block!important;}
+@media(max-width:700px){
+  .datebox .range-inputs{overflow:visible!important;}
+}
 </style>
 
 <script>
@@ -1141,7 +1190,6 @@ if (!window.storage) {
             <span class="range-sep">〜</span>
             <input type="date" id="endDateInput">
             <button id="nextWeekBtn" class="week-nav-btn" type="button">次の週 →</button>
-            <button id="todayBtn" class="week-nav-btn" type="button">今日</button>
           </div>
         </div>
       </div>
@@ -1937,12 +1985,6 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
 
     document.getElementById('prevWeekBtn').addEventListener('click',()=>moveWeek(-7));
     document.getElementById('nextWeekBtn').addEventListener('click',()=>moveWeek(7));
-
-    document.getElementById('todayBtn').addEventListener('click',()=>{
-      currentWeekStart=fmtDateInput(getMondayOf(null));
-      render();
-      scheduleSave();
-    });
 
     document.getElementById('memoText').addEventListener('input', (e) => {
       currentWeek().memo = e.target.value;
