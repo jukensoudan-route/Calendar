@@ -356,7 +356,7 @@ body{padding-bottom:calc(92px + env(safe-area-inset-bottom,0px))!important;}
   border-radius:14px!important;
   background:#fff!important;
   color:var(--blue,#2491d6)!important;
-  font-size:16px!important;
+  font-size:14px;
   font-weight:900!important;
   letter-spacing:.12em!important;
   box-shadow:0 4px 12px rgba(0,0,0,.28)!important;
@@ -368,7 +368,7 @@ body{padding-bottom:calc(92px + env(safe-area-inset-bottom,0px))!important;}
 @media(max-width:430px){
   .bottom-nav,.tabs.bottom-nav{gap:2px!important;padding-left:4px!important;padding-right:4px!important;}
   .bottom-nav>a,.bottom-nav>button,.tabs.bottom-nav>a,.tabs.bottom-nav>button{font-size:10px!important;padding-left:0!important;padding-right:0!important;}
-  .bottom-nav #bottomSaveBtn,.tabs.bottom-nav #bottomSaveBtn{font-size:15px!important;margin:-3px 1px!important;}
+  .bottom-nav #bottomSaveBtn,.tabs.bottom-nav #bottomSaveBtn{font-size:14px;margin:-3px 1px!important;}
 }
 @media print{body{padding-bottom:0!important}.bottom-nav,.tabs.bottom-nav{display:none!important}}
 
@@ -408,7 +408,7 @@ body{padding-bottom:calc(92px + env(safe-area-inset-bottom,0px))!important;}
 <nav class="bottom-nav" aria-label="ページ切替">
   <a href="index.html" data-page="week">週間</a>
   <a href="monthly_calendar.html" data-page="month">月間</a>
-  <button type="button" id="bottomSaveBtn">保存</button>
+  <button type="button" id="bottomSaveBtn" style="width:80px;padding:6px 10px;font-size:14px;">保存</button>
   <a href="annual_calendar.html" data-page="year" class="active">年間</a>
   <a href="index.html?view=todo" data-page="todo">TODO</a>
   <a href="index.html?view=done" data-page="done">完了</a>
