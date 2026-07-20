@@ -239,6 +239,46 @@ body{padding-bottom:86px!important}
 .day.holiday{background:#fff3f1;}
 .day.holiday .num{color:#d84f45;}
 .holiday-label{font-size:8px;line-height:1.2;color:#d84f45;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px;}
+
+/* v11: 下部ナビを画面最下部に固定・青色化・誤タップ防止 */
+html{min-height:100%;}
+body{padding-bottom:calc(78px + env(safe-area-inset-bottom))!important;}
+.bottom-nav,.tabs.bottom-nav{
+  position:fixed!important;
+  position:-webkit-fixed!important;
+  left:0!important;
+  right:0!important;
+  bottom:0!important;
+  top:auto!important;
+  width:100vw!important;
+  max-width:none!important;
+  margin:0!important;
+  transform:translateZ(0)!important;
+  -webkit-transform:translateZ(0)!important;
+  backface-visibility:hidden!important;
+  -webkit-backface-visibility:hidden!important;
+  z-index:2147483000!important;
+  background:linear-gradient(135deg,var(--blue,#2491d6),var(--blue-light,#2ea0e8))!important;
+  box-shadow:0 -3px 15px rgba(22,50,62,.24)!important;
+  isolation:isolate!important;
+  touch-action:manipulation;
+}
+.bottom-nav a,.bottom-nav button,.tabs.bottom-nav a,.tabs.bottom-nav button{
+  position:relative!important;
+  z-index:1!important;
+  touch-action:manipulation!important;
+  -webkit-tap-highlight-color:transparent!important;
+}
+.bottom-nav #bottomSaveBtn,.tabs.bottom-nav #bottomSaveBtn{
+  background:rgba(255,255,255,.20)!important;
+  color:#fff!important;
+}
+.bottom-nav #bottomSaveBtn:active,.tabs.bottom-nav #bottomSaveBtn:active{
+  background:#fff!important;
+  color:var(--blue,#2491d6)!important;
+}
+@media print{body{padding-bottom:0!important}.bottom-nav,.tabs.bottom-nav{display:none!important}}
+
 </style>
 </head>
 <body>
@@ -279,11 +319,11 @@ body{padding-bottom:86px!important}
   <span><i data-color="pink"></i>かのこ</span>
 </div>
 <nav class="bottom-nav" aria-label="ページ切替">
-  <a href="./" data-page="week">週間</a>
+  <a href="index.html" data-page="week">週間</a>
   <a href="monthly_calendar.html" data-page="month" class="active">月間</a>
   <a href="annual_calendar.html" data-page="year">年間</a>
-  <a href="./?view=todo" data-page="todo">TODO</a>
-  <a href="./?view=done" data-page="done">完了</a>
+  <a href="index.html?view=todo" data-page="todo">TODO</a>
+  <a href="index.html?view=done" data-page="done">完了</a>
   <button type="button" id="bottomSaveBtn">保存</button>
 </nav>
 <div id="printCalendar" class="print-calendar"></div>

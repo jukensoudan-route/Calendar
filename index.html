@@ -1148,6 +1148,46 @@ body{padding-bottom:86px!important}
   transform:none!important;
 }
 
+
+/* v11: 下部ナビを画面最下部に固定・青色化・誤タップ防止 */
+html{min-height:100%;}
+body{padding-bottom:calc(78px + env(safe-area-inset-bottom))!important;}
+.bottom-nav,.tabs.bottom-nav{
+  position:fixed!important;
+  position:-webkit-fixed!important;
+  left:0!important;
+  right:0!important;
+  bottom:0!important;
+  top:auto!important;
+  width:100vw!important;
+  max-width:none!important;
+  margin:0!important;
+  transform:translateZ(0)!important;
+  -webkit-transform:translateZ(0)!important;
+  backface-visibility:hidden!important;
+  -webkit-backface-visibility:hidden!important;
+  z-index:2147483000!important;
+  background:linear-gradient(135deg,var(--blue,#2491d6),var(--blue-light,#2ea0e8))!important;
+  box-shadow:0 -3px 15px rgba(22,50,62,.24)!important;
+  isolation:isolate!important;
+  touch-action:manipulation;
+}
+.bottom-nav a,.bottom-nav button,.tabs.bottom-nav a,.tabs.bottom-nav button{
+  position:relative!important;
+  z-index:1!important;
+  touch-action:manipulation!important;
+  -webkit-tap-highlight-color:transparent!important;
+}
+.bottom-nav #bottomSaveBtn,.tabs.bottom-nav #bottomSaveBtn{
+  background:rgba(255,255,255,.20)!important;
+  color:#fff!important;
+}
+.bottom-nav #bottomSaveBtn:active,.tabs.bottom-nav #bottomSaveBtn:active{
+  background:#fff!important;
+  color:var(--blue,#2491d6)!important;
+}
+@media print{body{padding-bottom:0!important}.bottom-nav,.tabs.bottom-nav{display:none!important}}
+
 </style>
 
 <script>
@@ -2033,9 +2073,9 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
     document.getElementById('optWeek').addEventListener('change', (e) => {
       document.getElementById('printWeeksInput').disabled = !e.target.checked;
     });
-    document.getElementById('tabSchedule').addEventListener('click', () => switchTab('schedule'));
-    document.getElementById('tabTodo').addEventListener('click', () => switchTab('todo'));
-    document.getElementById('tabDone').addEventListener('click', () => switchTab('done'));
+    document.getElementById('tabSchedule').addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); switchTab('schedule'); });
+    document.getElementById('tabTodo').addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); switchTab('todo'); });
+    document.getElementById('tabDone').addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); switchTab('done'); });
 
     function switchTab(name) {
       const pages = { schedule: 'pageSchedule', todo: 'pageTodo', done: 'pageDone' };
@@ -2044,6 +2084,14 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
         document.getElementById(pages[k]).classList.toggle('active', k === name);
         document.getElementById(tabs[k]).classList.toggle('active', k === name);
       });
+    }
+
+    // 月間・年間ページからの TODO／完了リンクを正しく開く
+    const requestedView = new URLSearchParams(location.search).get('view');
+    if (requestedView === 'todo' || requestedView === 'done') {
+      switchTab(requestedView);
+    } else {
+      switchTab('schedule');
     }
 
     document.getElementById('resetBtn').addEventListener('click', () => {
@@ -2754,7 +2802,12 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
     }
 
     document.getElementById('saveBtn').addEventListener('click',saveAndSyncAll);
-    document.getElementById('bottomSaveBtn').addEventListener('click',saveAndSyncAll);
+    document.getElementById('bottomSaveBtn').addEventListener('click',async (event)=>{
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      await saveAndSyncAll(event);
+    }, {capture:true});
 
     window.addEventListener('online',autoSyncGoogleIfReady);
     window.addEventListener('focus',autoSyncGoogleIfReady);
