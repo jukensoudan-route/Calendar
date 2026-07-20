@@ -422,6 +422,42 @@ body{padding-bottom:calc(92px + env(safe-area-inset-bottom,0px))!important;}
 .bottom-nav #bottomSaveBtn,.tabs.bottom-nav #bottomSaveBtn{grid-column:1!important;grid-row:1!important;min-height:48px!important;margin:0!important;border-radius:10px!important;font-size:13px!important;letter-spacing:0!important;transform:none!important;}
 @media screen and (max-width:430px){.bottom-nav,.tabs.bottom-nav{gap:2px!important}.bottom-nav>a,.bottom-nav>button,.tabs.bottom-nav>a,.tabs.bottom-nav>button{min-height:44px!important;padding:5px 0!important;font-size:10px!important}.bottom-nav #bottomSaveBtn,.tabs.bottom-nav #bottomSaveBtn{font-size:11px!important}}
 </style>
+<style>
+/* v19: 月間・年間の下部ボタンを週間ページと同じ仕様に統一 */
+.tabs.bottom-nav{
+  display:grid!important;
+  grid-template-columns:repeat(6,minmax(0,1fr))!important;
+  grid-template-rows:1fr!important;
+  gap:2px!important;
+  align-items:stretch!important;
+}
+.tabs.bottom-nav>a,.tabs.bottom-nav>button{
+  grid-row:1!important;
+  grid-column:auto!important;
+  width:auto!important;
+  min-width:0!important;
+  min-height:48px!important;
+  margin:0!important;
+  padding:7px 2px!important;
+  border-radius:10px!important;
+  font:inherit!important;
+  font-size:13px!important;
+  font-weight:700!important;
+  line-height:1.2!important;
+  text-align:center!important;
+  text-decoration:none!important;
+  white-space:nowrap!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  box-sizing:border-box!important;
+}
+.tabs.bottom-nav #bottomSaveBtn{grid-column:1!important;}
+@media screen and (max-width:430px){
+  .tabs.bottom-nav>a,.tabs.bottom-nav>button{min-height:44px!important;padding:5px 0!important;font-size:10px!important;}
+  .tabs.bottom-nav #bottomSaveBtn{font-size:11px!important;}
+}
+</style>
 </head>
 <body>
 <header>
@@ -454,14 +490,14 @@ body{padding-bottom:calc(92px + env(safe-area-inset-bottom,0px))!important;}
   <span><i data-color="purple"></i>蒼一郎</span>
   <span><i data-color="pink"></i>かのこ</span>
 </div>
-<nav class="bottom-nav" aria-label="ページ切替">
-  <button type="button" id="bottomSaveBtn">保存</button>
-  <a href="index.html" data-page="week">週間</a>
-  <a href="monthly_calendar.html" data-page="month">月間</a>
-  <a href="annual_calendar.html" data-page="year" class="active">年間</a>
-  <a href="index.html?view=todo" data-page="todo">Todo</a>
-  <a href="index.html?view=done" data-page="done">完了</a>
-</nav>
+<div class="tabs bottom-nav" role="navigation" aria-label="ページ切替">
+  <button type="button" class="tab-btn" id="bottomSaveBtn">保存</button>
+  <a class="calendar-link" href="index.html" data-page="week">週間</a>
+  <a class="calendar-link" href="monthly_calendar.html" data-page="month">月間</a>
+  <a class="calendar-link active" href="annual_calendar.html" data-page="year">年間</a>
+  <a class="calendar-link" href="index.html?view=todo" data-page="todo">Todo</a>
+  <a class="calendar-link" href="index.html?view=done" data-page="done">完了</a>
+</div>
 <div id="printCalendar" class="print-calendar"></div>
 <div class="brand">進路相談室 ROUTE</div>
 
