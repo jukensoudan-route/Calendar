@@ -1149,7 +1149,7 @@ body{padding-bottom:86px!important}
 }
 
 
-/* v11: 下部ナビを画面最下部に固定・青色化・誤タップ防止 */
+/* v12: 下部ナビを画面最下部に固定・青色化・誤タップ防止 */
 html{min-height:100%;}
 body{padding-bottom:calc(78px + env(safe-area-inset-bottom))!important;}
 .bottom-nav,.tabs.bottom-nav{
@@ -2834,11 +2834,6 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
     });
 
     initializePlanner();
-
-    const requestedView = new URLSearchParams(window.location.search).get('view');
-    if (requestedView === 'todo' || requestedView === 'done') {
-      switchTab(requestedView);
-    }
   </script>
 
 <script>
