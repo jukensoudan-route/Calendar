@@ -219,7 +219,7 @@ body{padding-bottom:86px!important}
 .family-legend i[data-color="orange"]{background:#ff9800}
 .family-legend i[data-color="purple"]{background:#8e63ce}
 .family-legend i[data-color="pink"]{background:#e97fa8}
-.bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:1000;display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:7px max(7px,env(safe-area-inset-left)) calc(7px + env(safe-area-inset-bottom));background:linear-gradient(135deg,#6934b5,#8645cf);box-shadow:0 -3px 15px rgba(40,20,80,.22)}
+.bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:1000;display:grid;grid-template-columns:repeat(6,1fr);gap:4px;padding:7px max(7px,env(safe-area-inset-left)) calc(7px + env(safe-area-inset-bottom));background:linear-gradient(135deg,#6934b5,#8645cf);box-shadow:0 -3px 15px rgba(40,20,80,.22)}
 .bottom-nav a,.bottom-nav button{display:flex;align-items:center;justify-content:center;min-height:48px;padding:6px 2px;border:0;border-radius:9px;background:transparent;color:#fff;text-decoration:none;font:700 12px system-ui,-apple-system,"Noto Sans JP",sans-serif;cursor:pointer}
 .bottom-nav a.active,.bottom-nav button.active{background:#fff;color:#56289f;box-shadow:0 2px 8px rgba(0,0,0,.13)}
 @media(max-width:600px){
@@ -229,6 +229,11 @@ body{padding-bottom:86px!important}
   .bottom-nav a,.bottom-nav button{font-size:11px;min-height:46px}
 }
 @media print{.bottom-nav,.family-legend{display:none!important}body{padding-bottom:0!important}}
+
+
+/* v3: 固定バー保存 */
+.bottom-nav{position:fixed!important;transform:none!important}
+.bottom-nav #bottomSaveBtn{background:rgba(255,255,255,.18);font-weight:800}
 
 </style>
 </head>
@@ -275,6 +280,7 @@ body{padding-bottom:86px!important}
   <a href="annual_calendar.html" data-page="year">年間</a>
   <a href="./?view=todo" data-page="todo">TODO</a>
   <a href="./?view=done" data-page="done">完了</a>
+  <button type="button" id="bottomSaveBtn">保存</button>
 </nav>
 <div id="printCalendar" class="print-calendar"></div>
 <div class="brand">進路相談室 ROUTE</div>
@@ -707,6 +713,17 @@ document.getElementById('saveBtn').onclick=async()=>{
 };
 document.getElementById('prevBtn').onclick=()=>{shown.setMonth(shown.getMonth()-1);render()};
 document.getElementById('nextBtn').onclick=()=>{shown.setMonth(shown.getMonth()+1);render()};
+
+document.getElementById('bottomSaveBtn').onclick=async()=>{
+  if(document.getElementById('modal').classList.contains('open')){
+    document.getElementById('saveBtn').click();
+    return;
+  }
+  saveLocal();
+  setStatus('端末に保存しました。クラウド同期中…','syncing');
+  try{ await push(); }catch(e){ console.error(e); setStatus('端末には保存しました','ok'); }
+};
+
 document.getElementById('todayBtn').onclick=()=>{
   shown=new Date();
   shown.setDate(1);

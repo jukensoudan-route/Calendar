@@ -895,9 +895,8 @@ body{background:#eef2f5;}
   .datebox .range-inputs input[type=date]{width:100%!important;min-width:0!important;font-size:15px!important;}
   .datebox .start-date{min-width:0!important;font-size:15px!important;}
   .week-nav-btn{padding:10px 9px!important;font-size:12px!important;border-radius:9px!important;}
-  #todayBtn{display:none!important;}
   .accent-bar{margin:12px 0!important;}
-  .tabs{display:grid!important;grid-template-columns:repeat(5,1fr)!important;gap:6px!important;margin:0 0 14px!important;position:sticky!important;top:0!important;z-index:30!important;background:#fff!important;padding:8px 0!important;}
+  .tabs{display:grid!important;grid-template-columns:repeat(6,1fr)!important;gap:4px!important;margin:0!important;position:sticky!important;top:0!important;z-index:30!important;background:#fff!important;padding:8px 0!important;}
   .tab-btn,.calendar-link{min-width:0!important;padding:11px 2px!important;font-size:13px!important;border-radius:9px!important;}
   .tab-btn.active,.actions .nav-tab.active{background:linear-gradient(135deg,var(--purple),var(--purple2))!important;}
   .planner-table{border-radius:11px!important;}
@@ -924,7 +923,7 @@ body{padding-bottom:86px!important}
 .family-legend i[data-color="orange"]{background:#ff9800}
 .family-legend i[data-color="purple"]{background:#8e63ce}
 .family-legend i[data-color="pink"]{background:#e97fa8}
-.bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:1000;display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:7px max(7px,env(safe-area-inset-left)) calc(7px + env(safe-area-inset-bottom));background:linear-gradient(135deg,#6934b5,#8645cf);box-shadow:0 -3px 15px rgba(40,20,80,.22)}
+.bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:1000;display:grid;grid-template-columns:repeat(6,1fr);gap:4px;padding:7px max(7px,env(safe-area-inset-left)) calc(7px + env(safe-area-inset-bottom));background:linear-gradient(135deg,#6934b5,#8645cf);box-shadow:0 -3px 15px rgba(40,20,80,.22)}
 .bottom-nav a,.bottom-nav button{display:flex;align-items:center;justify-content:center;min-height:48px;padding:6px 2px;border:0;border-radius:9px;background:transparent;color:#fff;text-decoration:none;font:700 12px system-ui,-apple-system,"Noto Sans JP",sans-serif;cursor:pointer}
 .bottom-nav a.active,.bottom-nav button.active{background:#fff;color:#56289f;box-shadow:0 2px 8px rgba(0,0,0,.13)}
 @media(max-width:600px){
@@ -1012,6 +1011,26 @@ body{padding-bottom:86px!important}
   .aligned-event-line .color-tile{width:22px !important;height:22px !important}
   .aligned-event-line .event-text{font-size:11px !important}
 }
+
+/* v3: 週間範囲の重なり防止・固定バー保存 */
+@media (max-width:700px){
+  .datebox .range-inputs{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    grid-template-areas:"prev next" "range range" "today today"!important;
+    gap:7px!important;
+  }
+  #prevWeekBtn{grid-area:prev}
+  #nextWeekBtn{grid-area:next}
+  #todayBtn{grid-area:today;display:block!important}
+  .start-date{grid-area:range;justify-self:center;padding-right:120px!important;white-space:nowrap!important}
+  .range-sep{grid-area:range;justify-self:center;z-index:2;margin:0!important}
+  #endDateInput{grid-area:range;justify-self:center;margin-left:120px!important;width:116px!important;text-align:center!important}
+}
+.tabs.bottom-nav{position:fixed!important;transform:none!important}
+.tabs.bottom-nav #bottomSaveBtn{background:rgba(255,255,255,.18)!important;color:#fff!important;font-weight:800!important}
+.tabs.bottom-nav #bottomSaveBtn:active{background:#fff!important;color:#56289f!important}
+
 </style>
 
 <script>
@@ -1074,6 +1093,7 @@ if (!window.storage) {
       <a class="calendar-link" href="annual_calendar.html">年間</a>
       <button class="tab-btn" id="tabTodo">TODO</button>
       <button class="tab-btn" id="tabDone">完了</button>
+      <button type="button" id="bottomSaveBtn">保存</button>
     </div>
 
     <div class="page active" id="pageSchedule">
@@ -2485,6 +2505,7 @@ function linkOrCreateTodo(todo){
     }
 
     document.getElementById('saveBtn').addEventListener('click',saveAndSyncAll);
+    document.getElementById('bottomSaveBtn').addEventListener('click',saveAndSyncAll);
 
     window.addEventListener('online',autoSyncGoogleIfReady);
     window.addEventListener('focus',autoSyncGoogleIfReady);
