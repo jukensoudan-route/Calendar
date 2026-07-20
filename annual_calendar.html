@@ -447,12 +447,12 @@ body{padding-bottom:calc(92px + env(safe-area-inset-bottom,0px))!important;}
   <span><i data-color="pink"></i>かのこ</span>
 </div>
 <nav class="bottom-nav" aria-label="ページ切替">
+  <button type="button" id="bottomSaveBtn">保存</button>
   <a href="index.html" data-page="week">週間</a>
   <a href="monthly_calendar.html" data-page="month">月間</a>
   <a href="annual_calendar.html" data-page="year" class="active">年間</a>
-  <a href="index.html?view=todo" data-page="todo">TODO</a>
+  <a href="index.html?view=todo" data-page="todo">Todo</a>
   <a href="index.html?view=done" data-page="done">完了</a>
-  <button type="button" id="bottomSaveBtn">保存</button>
 </nav>
 <div id="printCalendar" class="print-calendar"></div>
 <div class="brand">進路相談室 ROUTE</div>
@@ -1093,3 +1093,7 @@ loadLocal();render();pull();setInterval(()=>{if(document.visibilityState==='visi
 
 </body>
 </html>
+<style>
+.bottom-nav{grid-template-columns:repeat(6,minmax(0,1fr))!important;flex-wrap:nowrap!important;}
+.bottom-nav>a,.bottom-nav>button{min-width:0!important;white-space:nowrap!important;}
+</style>
