@@ -379,6 +379,14 @@ body{padding-bottom:calc(92px + env(safe-area-inset-bottom,0px))!important;}
 }
 
 </style>
+
+<style>
+/* v18: 下部バーを「保存｜週間｜月間｜年間｜Todo｜完了」の横1列に固定 */
+.bottom-nav,.tabs.bottom-nav{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;grid-template-rows:1fr!important;grid-auto-flow:column!important;grid-auto-columns:minmax(0,1fr)!important;flex-wrap:nowrap!important;align-items:stretch!important;}
+.bottom-nav>a,.bottom-nav>button,.tabs.bottom-nav>a,.tabs.bottom-nav>button{grid-column:auto!important;grid-row:1!important;width:auto!important;min-width:0!important;min-height:48px!important;margin:0!important;white-space:nowrap!important;}
+.bottom-nav #bottomSaveBtn,.tabs.bottom-nav #bottomSaveBtn{grid-column:1!important;grid-row:1!important;min-height:48px!important;margin:0!important;border-radius:10px!important;font-size:13px!important;letter-spacing:0!important;transform:none!important;}
+@media screen and (max-width:430px){.bottom-nav,.tabs.bottom-nav{gap:2px!important}.bottom-nav>a,.bottom-nav>button,.tabs.bottom-nav>a,.tabs.bottom-nav>button{min-height:44px!important;padding:5px 0!important;font-size:10px!important}.bottom-nav #bottomSaveBtn,.tabs.bottom-nav #bottomSaveBtn{font-size:11px!important}}
+</style>
 </head>
 <body>
 <header>
@@ -1004,7 +1012,3 @@ loadLocal();render();pull();setInterval(()=>{if(document.visibilityState==='visi
 
 </body>
 </html>
-<style>
-.bottom-nav{grid-template-columns:repeat(6,minmax(0,1fr))!important;flex-wrap:nowrap!important;}
-.bottom-nav>a,.bottom-nav>button{min-width:0!important;white-space:nowrap!important;}
-</style>
