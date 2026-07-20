@@ -1396,21 +1396,37 @@ function linkOrCreateTodo(todo){
     }
 
     async function loadDB() {
+      // GitHub Pages・ホーム画面追加・通常ブラウザでは localStorage を必ず使用する。
+      // window.storage が使える環境では、そちらの新しい内容を上書きで読み込む。
+      try {
+        const localWeeks = localStorage.getItem(WEEKS_KEY);
+        const localTodos = localStorage.getItem(TODOS_KEY);
+        if (localWeeks) weeksDB = JSON.parse(localWeeks) || {};
+        if (localTodos) todosDB = JSON.parse(localTodos) || { items: [] };
+      } catch (e) {
+        console.error('local load error:', e);
+      }
+
       try {
         if (window.storage && typeof window.storage.get === 'function') {
           try {
             const w = await window.storage.get(WEEKS_KEY, false);
-            if (w && w.value) weeksDB = JSON.parse(w.value) || {};
-          } catch (e) { /* no weeks yet */ }
+            if (w && w.value) weeksDB = JSON.parse(w.value) || weeksDB;
+          } catch (e) { /* window.storage にデータがない場合は localStorage を使用 */ }
           try {
             const t = await window.storage.get(TODOS_KEY, false);
-            if (t && t.value) todosDB = JSON.parse(t.value) || { items: [] };
-          } catch (e) { /* no todos yet */ }
+            if (t && t.value) todosDB = JSON.parse(t.value) || todosDB;
+          } catch (e) { /* window.storage にデータがない場合は localStorage を使用 */ }
         }
-      } catch (e) { /* storage unavailable */ }
+      } catch (e) {
+        console.error('storage load error:', e);
+      }
+
       if (!todosDB || !Array.isArray(todosDB.items)) todosDB = { items: [] };
       if (!weeksDB || typeof weeksDB !== 'object') weeksDB = {};
+      normalizeAllEventColors();
       syncLinkedTodosFromMaster();
+      persistLocalNow();
       render();
     }
 
@@ -1439,17 +1455,19 @@ function linkOrCreateTodo(todo){
     async function saveDB() {
       syncLinkedTodosFromMaster();
       const indicator = document.getElementById('saveIndicator');
-      if (!window.storage || typeof window.storage.set !== 'function') {
-        indicator.textContent = 'この画面内でのみ保持されます（自動保存は利用できません）';
-        return;
-      }
       try {
+        // どの公開環境でも、まず端末の localStorage へ確実に保存する。
         persistLocalNow();
-        await window.storage.set(WEEKS_KEY, JSON.stringify(weeksDB), false);
-        await window.storage.set(TODOS_KEY, JSON.stringify(todosDB), false);
-        indicator.textContent = 'データベースに保存しました';
+
+        // window.storage が使える場合だけ追加保存する。
+        if (window.storage && typeof window.storage.set === 'function') {
+          await window.storage.set(WEEKS_KEY, JSON.stringify(weeksDB), false);
+          await window.storage.set(TODOS_KEY, JSON.stringify(todosDB), false);
+        }
+
+        indicator.textContent = '端末に保存しました';
         setTimeout(() => {
-          if (indicator.textContent === 'データベースに保存しました') indicator.textContent = '';
+          if (indicator.textContent === '端末に保存しました') indicator.textContent = '';
         }, 1800);
         scheduleCloudPush();
       } catch (e) {
