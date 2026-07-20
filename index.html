@@ -1031,6 +1031,29 @@ body{padding-bottom:86px!important}
 .tabs.bottom-nav #bottomSaveBtn{background:rgba(255,255,255,.18)!important;color:#fff!important;font-weight:800!important}
 .tabs.bottom-nav #bottomSaveBtn:active{background:#fff!important;color:#56289f!important}
 
+
+/* v4: 色選択パレットを予定枠の外側へ固定表示 */
+.color-palette.floating-palette{
+  position:fixed!important;
+  left:auto;right:auto;top:auto;bottom:auto;
+  z-index:5000!important;
+  display:flex!important;
+  flex-direction:column!important;
+  gap:5px!important;
+  padding:6px!important;
+  width:auto!important;
+  background:#fff!important;
+  border:1px solid #cfd9dd!important;
+  border-radius:9px!important;
+  box-shadow:0 8px 24px rgba(0,0,0,.24)!important;
+}
+.color-palette.floating-palette .color-choice{
+  width:28px!important;height:28px!important;flex:0 0 28px!important;
+}
+@media(max-width:700px){
+  .color-palette.floating-palette{gap:4px!important;padding:5px!important}
+  .color-palette.floating-palette .color-choice{width:26px!important;height:26px!important;flex-basis:26px!important}
+}
 </style>
 
 <script>
@@ -1249,13 +1272,46 @@ function colorPickerHtml(color='white'){
     </div>
   </div>`;
 }
+function closeColorPicker(picker){
+  if(!picker) return;
+  picker.classList.remove('open');
+  const palette=picker.querySelector('.color-palette');
+  if(palette){
+    palette.classList.remove('floating-palette');
+    palette.style.left='';palette.style.right='';palette.style.top='';palette.style.bottom='';
+  }
+}
+function positionColorPalette(picker){
+  const tile=picker.querySelector('.color-tile');
+  const palette=picker.querySelector('.color-palette');
+  if(!tile||!palette) return;
+  palette.classList.add('floating-palette');
+  const r=tile.getBoundingClientRect();
+  const gap=8;
+  const paletteWidth=42;
+  const paletteHeight=170;
+  const margin=6;
+  let left=r.right+gap;
+  if(left+paletteWidth>window.innerWidth-margin) left=r.left-gap-paletteWidth;
+  left=Math.max(margin,Math.min(left,window.innerWidth-paletteWidth-margin));
+  let top=r.top+(r.height-paletteHeight)/2;
+  top=Math.max(margin,Math.min(top,window.innerHeight-paletteHeight-margin));
+  palette.style.left=Math.round(left)+'px';
+  palette.style.top=Math.round(top)+'px';
+  palette.style.right='auto';
+  palette.style.bottom='auto';
+}
 function setupColorPicker(picker,onChange){
   const tile=picker.querySelector('.color-tile');
   const choices=[...picker.querySelectorAll('.color-choice')];
   tile.addEventListener('click',e=>{
     e.stopPropagation();
-    document.querySelectorAll('.color-picker.open').forEach(p=>{if(p!==picker)p.classList.remove('open')});
-    picker.classList.toggle('open');
+    const willOpen=!picker.classList.contains('open');
+    document.querySelectorAll('.color-picker.open').forEach(p=>{if(p!==picker)closeColorPicker(p)});
+    if(willOpen){
+      picker.classList.add('open');
+      requestAnimationFrame(()=>positionColorPalette(picker));
+    }else closeColorPicker(picker);
   });
   choices.forEach(btn=>btn.addEventListener('click',e=>{
     e.stopPropagation();
@@ -1263,11 +1319,13 @@ function setupColorPicker(picker,onChange){
     picker.dataset.color=color;
     tile.dataset.color=color;
     choices.forEach(x=>x.classList.toggle('selected',x===btn));
-    picker.classList.remove('open');
+    closeColorPicker(picker);
     if(onChange) onChange(color);
   }));
 }
-document.addEventListener('click',()=>document.querySelectorAll('.color-picker.open').forEach(p=>p.classList.remove('open')));
+document.addEventListener('click',()=>document.querySelectorAll('.color-picker.open').forEach(closeColorPicker));
+window.addEventListener('resize',()=>document.querySelectorAll('.color-picker.open').forEach(positionColorPalette));
+window.addEventListener('scroll',()=>document.querySelectorAll('.color-picker.open').forEach(positionColorPalette),true);
 
 const EVENT_COLORS={
   white:{label:'',hex:'#ffffff'},
