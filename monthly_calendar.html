@@ -59,7 +59,7 @@ main{max-width:1200px;margin:auto;padding:14px}
   .color-tile{width:26px;height:26px;border:1px solid rgba(0,0,0,.16);border-radius:6px;padding:0;cursor:pointer;display:block}
   .color-tile[data-color="white"],.color-choice[data-color="white"]{background:#ffffff;border:1px solid #bfc7cf}
 .color-tile[data-color="blue"],.color-choice[data-color="blue"]{background:#2491d6}
-  .color-tile[data-color="red"],.color-choice[data-color="red"]{background:#e0574a}
+  .color-tile[data-color="orange"],.color-choice[data-color="orange"]{background:#ff9800}
   .color-tile[data-color="purple"],.color-choice[data-color="purple"]{background:#8e63ce}
   .color-tile[data-color="pink"],.color-choice[data-color="pink"]{background:#e97fa8}
   .color-palette{display:none;position:absolute;left:0;top:31px;z-index:50;background:#fff;border:1px solid #cfd9dd;border-radius:8px;padding:5px;gap:5px;box-shadow:0 5px 16px rgba(0,0,0,.18)}
@@ -70,7 +70,7 @@ main{max-width:1200px;margin:auto;padding:14px}
 .event-edit-row input{flex:1;border:1px solid #cfd9dd;border-radius:6px;padding:7px;font:12px inherit}
 .todo-row select{flex:1;border:1px solid #cfd9dd;border-radius:6px;padding:7px;font:11px inherit}
 .todo-row input[type="text"]{flex:1.4}
-.event.blue{border-left-color:#2491d6}.event.red{border-left-color:#e0574a}.event.purple{border-left-color:#8e63ce}.event.green{border-left-color:#8e63ce}.event.pink{border-left-color:#e97fa8}
+.event.blue{border-left-color:#2491d6}.event.orange{border-left-color:#ff9800}.event.red{border-left-color:#ff9800}.event.purple{border-left-color:#8e63ce}.event.green{border-left-color:#8e63ce}.event.pink{border-left-color:#e97fa8}
 
 .todo-list{display:grid;gap:6px}
 .todo-row{display:flex;gap:6px;align-items:center}
@@ -157,6 +157,79 @@ main{max-width:1200px;margin:auto;padding:14px}
   font-size:11px;
 }
 
+
+/* 2026-07 mobile unified design */
+:root{--purple:#7438c8;--purple2:#9252dc;--orange:#ff9800;--nav-bg:#fff;}
+body{background:#eef2f5;}
+.sheet,header,main{box-sizing:border-box;}
+@media (max-width:700px){
+  body{padding:10px 8px 88px!important;display:block!important;}
+  .sheet{max-width:none!important;width:100%!important;padding:16px 12px 18px!important;border-radius:18px!important;box-shadow:0 5px 22px rgba(22,50,62,.10)!important;}
+  .header{display:block!important;margin-bottom:12px!important;}
+  .title{font-size:28px!important;line-height:1.1!important;margin-bottom:14px!important;}
+  .title .sub{font-size:13px!important;line-height:1.5!important;margin-top:8px!important;}
+  .datebox{width:100%!important;display:block!important;}
+  .datebox .field{width:100%!important;padding:10px 8px!important;border-radius:11px!important;}
+  .datebox .range-inputs{display:grid!important;grid-template-columns:auto 1fr auto 1fr auto!important;gap:7px!important;width:100%!important;align-items:center!important;}
+  .datebox .range-inputs input[type=date]{width:100%!important;min-width:0!important;font-size:15px!important;}
+  .datebox .start-date{min-width:0!important;font-size:15px!important;}
+  .week-nav-btn{padding:10px 9px!important;font-size:12px!important;border-radius:9px!important;}
+  #todayBtn{display:none!important;}
+  .accent-bar{margin:12px 0!important;}
+  .tabs{display:grid!important;grid-template-columns:repeat(5,1fr)!important;gap:6px!important;margin:0 0 14px!important;position:sticky!important;top:0!important;z-index:30!important;background:#fff!important;padding:8px 0!important;}
+  .tab-btn,.calendar-link{min-width:0!important;padding:11px 2px!important;font-size:13px!important;border-radius:9px!important;}
+  .tab-btn.active,.actions .nav-tab.active{background:linear-gradient(135deg,var(--purple),var(--purple2))!important;}
+  .planner-table{border-radius:11px!important;}
+  .col-header.date{width:82px!important;}
+  .col-header.todo,.day-todo-column{width:35%!important;}
+  .unified-day-label{width:82px!important;}
+  .aligned-event-line,.aligned-todo-line{min-height:45px!important;}
+  .event-text,.mini-text{font-size:15px!important;}
+  .color-tile{width:34px!important;height:34px!important;border-radius:8px!important;}
+  .color-palette{right:0!important;left:auto!important;}
+  .toolbar{flex-wrap:wrap!important;}
+}
+/* red is retained only for Sunday text; event red is migrated to orange */
+.color-tile[data-color="orange"],.color-choice[data-color="orange"]{background:#ff9800!important;}
+.event.orange{border-left-color:#ff9800!important;}
+.aligned-event-line[data-color="orange"] .event-text{background:linear-gradient(90deg,rgba(255,152,0,.10),transparent)!important;}
+
+@media (max-width:700px){
+  header{margin:8px!important;padding:14px 12px 12px!important;border-radius:18px!important;background:#fff!important;box-shadow:0 5px 22px rgba(22,50,62,.10)!important;}
+  .header-row{display:block!important;}
+  h1{font-size:25px!important;line-height:1.15!important;margin-bottom:5px!important;}
+  .sub{font-size:12px!important;line-height:1.5!important;}
+  .actions{display:grid!important;grid-template-columns:repeat(5,1fr)!important;gap:6px!important;margin-top:12px!important;position:sticky!important;top:0!important;z-index:30!important;background:#fff!important;padding:8px 0!important;}
+  .actions a.nav-tab{padding:11px 2px!important;text-align:center!important;font-size:12px!important;border-radius:9px!important;}
+  .actions button{display:none!important;}
+  main{margin:8px!important;padding:12px!important;border-radius:18px!important;background:#fff!important;box-shadow:0 5px 22px rgba(22,50,62,.08)!important;}
+  .month-nav,#yearNav{display:grid!important;grid-template-columns:auto 1fr auto!important;gap:8px!important;align-items:center!important;}
+  .month-nav #todayBtn{display:none!important;}
+  .month-label,#currentYearLabel{font-size:19px!important;text-align:center!important;}
+  .year-grid{grid-template-columns:1fr!important;gap:12px!important;}
+  .month{break-inside:avoid;}
+}
+
+
+body{padding-bottom:86px!important}
+.family-legend{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;margin:12px auto 8px;max-width:1180px;padding:0 8px;font-size:11px;font-weight:700;color:#274755}
+.family-legend span{display:flex;align-items:center;justify-content:center;gap:5px;min-width:0;padding:7px 3px;border:1px solid #d7e3e8;border-radius:8px;background:#fff;white-space:nowrap}
+.family-legend i{width:15px;height:15px;border:1px solid #b8c7ce;border-radius:4px;flex:none;background:#fff}
+.family-legend i[data-color="blue"]{background:#2491d6}
+.family-legend i[data-color="orange"]{background:#ff9800}
+.family-legend i[data-color="purple"]{background:#8e63ce}
+.family-legend i[data-color="pink"]{background:#e97fa8}
+.bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:1000;display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:7px max(7px,env(safe-area-inset-left)) calc(7px + env(safe-area-inset-bottom));background:linear-gradient(135deg,#6934b5,#8645cf);box-shadow:0 -3px 15px rgba(40,20,80,.22)}
+.bottom-nav a,.bottom-nav button{display:flex;align-items:center;justify-content:center;min-height:48px;padding:6px 2px;border:0;border-radius:9px;background:transparent;color:#fff;text-decoration:none;font:700 12px system-ui,-apple-system,"Noto Sans JP",sans-serif;cursor:pointer}
+.bottom-nav a.active,.bottom-nav button.active{background:#fff;color:#56289f;box-shadow:0 2px 8px rgba(0,0,0,.13)}
+@media(max-width:600px){
+  .family-legend{font-size:10px;gap:3px;padding:0 3px}
+  .family-legend span{padding:6px 1px;gap:3px}
+  .family-legend i{width:12px;height:12px}
+  .bottom-nav a,.bottom-nav button{font-size:11px;min-height:46px}
+}
+@media print{.bottom-nav,.family-legend{display:none!important}body{padding-bottom:0!important}}
+
 </style>
 </head>
 <body>
@@ -167,11 +240,7 @@ main{max-width:1200px;margin:auto;padding:14px}
       <div class="sub">週間カレンダーと同じGitHub Gistで自動同期</div>
     </div>
     <div class="actions">
-      <a class="btn nav-tab" href="./">週間</a>
-      <a class="btn nav-tab active" href="monthly_calendar.html" aria-current="page">月間</a>
-      <a class="btn nav-tab calendar" href="annual_calendar.html">年間</a>
-      <a class="btn nav-tab" href="./?view=todo">TODO</a>
-      <a class="btn nav-tab" href="./?view=done">完了</a>
+
       <button id="reloadBtn">最新を読込</button>
       <button id="printBtn">印刷</button>
     </div>
@@ -193,6 +262,20 @@ main{max-width:1200px;margin:auto;padding:14px}
     <div id="days" class="days"></div>
   </div>
 </main>
+<div class="family-legend" aria-label="予定色の説明">
+  <span><i data-color="white"></i>予定なし</span>
+  <span><i data-color="blue"></i>パパ</span>
+  <span><i data-color="orange"></i>ママ</span>
+  <span><i data-color="purple"></i>蒼一郎</span>
+  <span><i data-color="pink"></i>かのこ</span>
+</div>
+<nav class="bottom-nav" aria-label="ページ切替">
+  <a href="./" data-page="week">週間</a>
+  <a href="monthly_calendar.html" data-page="month" class="active">月間</a>
+  <a href="annual_calendar.html" data-page="year">年間</a>
+  <a href="./?view=todo" data-page="todo">TODO</a>
+  <a href="./?view=done" data-page="done">完了</a>
+</nav>
 <div id="printCalendar" class="print-calendar"></div>
 <div class="brand">進路相談室 ROUTE</div>
 
@@ -247,6 +330,7 @@ function loadLocal(){
   syncLinkedTodosFromMaster();
 }
 function saveLocal(){
+  normalizeAllEventColors();
   syncLinkedTodosFromMaster();
   localStorage.setItem(WEEKS_KEY,JSON.stringify(weeksDB));
   localStorage.setItem(TODOS_KEY,JSON.stringify(todosDB));
@@ -274,7 +358,7 @@ function colorPickerHtml(color='white'){
   return `<div class="color-picker" data-color="${color}">
     <button type="button" class="color-tile" data-color="${color}" aria-label="色を選択"></button>
     <div class="color-palette">
-      ${['white','blue','red','purple','pink'].map(c=>`<button type="button" class="color-choice ${c===color?'selected':''}" data-color="${c}" aria-label="${c}"></button>`).join('')}
+      ${['white','blue','orange','purple','pink'].map(c=>`<button type="button" class="color-choice ${c===color?'selected':''}" data-color="${c}" aria-label="${c}"></button>`).join('')}
     </div>
   </div>`;
 }
@@ -300,11 +384,12 @@ document.addEventListener('click',()=>document.querySelectorAll('.color-picker.o
 
 const EVENT_COLORS={
   white:{label:'',hex:'#ffffff'},
-  blue:{label:'青',hex:'#2491d6'},
-  red:{label:'赤',hex:'#e0574a'},
-  purple:{label:'紫',hex:'#8e63ce'},
-  green:{label:'紫',hex:'#8e63ce'},
-  pink:{label:'ピンク',hex:'#e97fa8'}
+  blue:{label:'パパ',hex:'#2491d6'},
+  orange:{label:'ママ',hex:'#ff9800'},
+  red:{label:'ママ',hex:'#ff9800'},
+  purple:{label:'蒼一郎',hex:'#8e63ce'},
+  green:{label:'蒼一郎',hex:'#8e63ce'},
+  pink:{label:'かのこ',hex:'#e97fa8'}
 };
 function normalizeEvents(dayData){
   if(!Array.isArray(dayData.events)){
@@ -313,8 +398,14 @@ function normalizeEvents(dayData){
   }
   dayData.events=dayData.events
     .filter(e=>e&&typeof e.text==='string')
-    .map(e=>({text:e.text,color:e.color==='green'?'purple':(EVENT_COLORS[e.color]?e.color:'white')}));
+    .map(e=>({text:e.text,color:e.color==='green'?'purple':(e.color==='red'?'orange':(EVENT_COLORS[e.color]?e.color:'white'))}));
   while(dayData.events.length<4) dayData.events.push({text:'',color:'white'});
+}
+function normalizeAllEventColors(){
+  Object.values(weeksDB||{}).forEach(week=>{
+    if(!week||!Array.isArray(week.days)) return;
+    week.days.forEach(day=>{ normalizeEvents(day); syncScheduleFromEvents(day); });
+  });
 }
 function syncScheduleFromEvents(dayData){
   normalizeEvents(dayData);
@@ -423,6 +514,7 @@ async function pull(){
     const parsed=JSON.parse(content);
     if(parsed.weeks)weeksDB=parsed.weeks;
     if(parsed.todos)todosDB=parsed.todos;
+    normalizeAllEventColors();
     if(!todosDB||!Array.isArray(todosDB.items)) todosDB={items:[]};
     saveLocal();render();
     setStatus('最新予定を読み込みました：'+new Date().toLocaleTimeString('ja-JP'),'ok');
@@ -432,8 +524,9 @@ async function pull(){
 async function push(){
   if(!ghCfg.token||!ghCfg.gistId){setStatus('GitHub接続情報がありません','err');return}
   syncing=true;setStatus('保存して同期しています…','syncing');
+  normalizeAllEventColors();
   const body={description:'進路相談室 ROUTE - 別ユーザー用週間カレンダー データ',public:false,files:{
-    [GIST_FILE]:{content:JSON.stringify({version:2,updatedAt:new Date().toISOString(),weeks:weeksDB,todos:todosDB},null,2)}
+    [GIST_FILE]:{content:JSON.stringify({version:3,updatedAt:new Date().toISOString(),weeks:weeksDB,todos:todosDB},null,2)}
   }};
   try{
     const r=await fetch('https://api.github.com/gists/'+ghCfg.gistId,{method:'PATCH',headers:headers(),body:JSON.stringify(body)});
