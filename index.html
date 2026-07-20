@@ -1141,6 +1141,13 @@ body{padding-bottom:86px!important}
 @media(max-width:700px){
   .datebox .range-inputs{overflow:visible!important;}
 }
+
+/* v9: iPhone Safari 色パレット位置修正 */
+.color-palette.floating-palette{
+  margin:0!important;
+  transform:none!important;
+}
+
 </style>
 
 <script>
@@ -1361,31 +1368,53 @@ function colorPickerHtml(color='white'){
 function closeColorPicker(picker){
   if(!picker) return;
   picker.classList.remove('open');
-  const palette=picker.querySelector('.color-palette');
+  const palette=picker._floatingPalette || picker.querySelector('.color-palette');
   if(palette){
     palette.classList.remove('floating-palette');
-    palette.style.left='';palette.style.right='';palette.style.top='';palette.style.bottom='';
+    palette.style.removeProperty('left');
+    palette.style.removeProperty('right');
+    palette.style.removeProperty('top');
+    palette.style.removeProperty('bottom');
+    if(palette.parentNode!==picker) picker.appendChild(palette);
   }
+  picker._floatingPalette=null;
 }
 function positionColorPalette(picker){
   const tile=picker.querySelector('.color-tile');
-  const palette=picker.querySelector('.color-palette');
+  const palette=picker._floatingPalette || picker.querySelector('.color-palette');
   if(!tile||!palette) return;
+
+  // iPhone Safariでは、表のoverflowやtransformの影響を避けるためbody直下に出す。
+  if(palette.parentNode!==document.body) document.body.appendChild(palette);
+  picker._floatingPalette=palette;
   palette.classList.add('floating-palette');
+
   const r=tile.getBoundingClientRect();
+  const vv=window.visualViewport;
+  const viewportLeft=vv ? vv.offsetLeft : 0;
+  const viewportTop=vv ? vv.offsetTop : 0;
+  const viewportWidth=vv ? vv.width : document.documentElement.clientWidth;
+  const viewportHeight=vv ? vv.height : document.documentElement.clientHeight;
   const gap=8;
-  const paletteWidth=42;
-  const paletteHeight=170;
+  const paletteWidth=palette.offsetWidth || 42;
+  const paletteHeight=palette.offsetHeight || 170;
   const margin=6;
-  let left=r.right+gap;
-  if(left+paletteWidth>window.innerWidth-margin) left=r.left-gap-paletteWidth;
-  left=Math.max(margin,Math.min(left,window.innerWidth-paletteWidth-margin));
-  let top=r.top+(r.height-paletteHeight)/2;
-  top=Math.max(margin,Math.min(top,window.innerHeight-paletteHeight-margin));
-  palette.style.left=Math.round(left)+'px';
-  palette.style.top=Math.round(top)+'px';
-  palette.style.right='auto';
-  palette.style.bottom='auto';
+
+  // 基本は色四角の右横。入らない場合だけ左横に出す。
+  let left=viewportLeft+r.right+gap;
+  const rightLimit=viewportLeft+viewportWidth-margin;
+  if(left+paletteWidth>rightLimit) left=viewportLeft+r.left-gap-paletteWidth;
+  left=Math.max(viewportLeft+margin,Math.min(left,rightLimit-paletteWidth));
+
+  let top=viewportTop+r.top+(r.height-paletteHeight)/2;
+  const bottomLimit=viewportTop+viewportHeight-margin;
+  top=Math.max(viewportTop+margin,Math.min(top,bottomLimit-paletteHeight));
+
+  // 既存のモバイルCSSの!importantを確実に上書きする。
+  palette.style.setProperty('left',Math.round(left)+'px','important');
+  palette.style.setProperty('top',Math.round(top)+'px','important');
+  palette.style.setProperty('right','auto','important');
+  palette.style.setProperty('bottom','auto','important');
 }
 function setupColorPicker(picker,onChange){
   const tile=picker.querySelector('.color-tile');
@@ -1412,6 +1441,10 @@ function setupColorPicker(picker,onChange){
 document.addEventListener('click',()=>document.querySelectorAll('.color-picker.open').forEach(closeColorPicker));
 window.addEventListener('resize',()=>document.querySelectorAll('.color-picker.open').forEach(positionColorPalette));
 window.addEventListener('scroll',()=>document.querySelectorAll('.color-picker.open').forEach(positionColorPalette),true);
+if(window.visualViewport){
+  window.visualViewport.addEventListener('resize',()=>document.querySelectorAll('.color-picker.open').forEach(positionColorPalette));
+  window.visualViewport.addEventListener('scroll',()=>document.querySelectorAll('.color-picker.open').forEach(positionColorPalette));
+}
 
 const EVENT_COLORS={
   white:{label:'',hex:'#ffffff'},
@@ -1530,6 +1563,8 @@ function linkOrCreateTodo(todo){
     let saveTimer = null;
     let lastUserEditAt = 0;
     let isPulling = false;
+    // 入力後、クラウド保存が完了するまでは自動読込で上書きしない
+    let localDirty = false;
 
     function currentWeek() {
       if (!weeksDB[currentWeekStart]) weeksDB[currentWeekStart] = emptyWeek();
@@ -1603,6 +1638,7 @@ function linkOrCreateTodo(todo){
 
     function scheduleSave() {
       lastUserEditAt = Date.now();
+      localDirty = true;
       const indicator = document.getElementById('saveIndicator');
       indicator.textContent = '保存中...';
       try {
@@ -1613,7 +1649,10 @@ function linkOrCreateTodo(todo){
         indicator.textContent = '端末への保存に失敗しました';
       }
       if (saveTimer) clearTimeout(saveTimer);
-      saveTimer = setTimeout(saveDB, 600);
+      saveTimer = setTimeout(() => {
+        saveTimer = null;
+        saveDB();
+      }, 600);
     }
 
     async function saveDB() {
@@ -2218,6 +2257,8 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
           document.getElementById('ghGist').value = data.id;
         }
         await saveGhCfg();
+        localDirty = false;
+        if (pushTimer) { clearTimeout(pushTimer); pushTimer = null; }
         syncMsg('クラウドに保存しました（' + new Date().toLocaleTimeString('ja-JP') + '）', 'ok');
       } catch (e) {
         console.error(e);
@@ -2270,7 +2311,10 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
       if (isPulling) return;
       if (!ghCfg.token || !ghCfg.gistId) return;   // only auto-sync once connected
       if (pushTimer) clearTimeout(pushTimer);
-      pushTimer = setTimeout(() => pushToGist(true), 4000);
+      pushTimer = setTimeout(() => {
+        pushTimer = null;
+        pushToGist(true);
+      }, 4000);
     }
 
     document.getElementById('syncToggle').addEventListener('click', () => {
@@ -2302,7 +2346,10 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
     async function autoPullIfReady() {
       readGhInputs();
       if (!ghCfg.token || !ghCfg.gistId || !navigator.onLine || isPulling) return;
-      if (Date.now() - lastUserEditAt < 10000) return;
+      // 未保存・送信待ちの入力がある間は、古いクラウドデータを自動読込しない。
+      // 手動の『クラウドから読込』ボタンだけは従来どおり利用できる。
+      if (localDirty || pushTimer || saveTimer) return;
+      if (Date.now() - lastUserEditAt < 15000) return;
       await pullFromGist();
     }
 
