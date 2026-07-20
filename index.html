@@ -1442,10 +1442,28 @@ function linkOrCreateTodo(todo){
 
           textInput.addEventListener('input', e => {
             todo.text = e.target.value;
-            if (todo.todoId) {
+
+            // 週間欄へ直接入力した時点で、共通TODOへ即時登録・ID連携する。
+            // これにより、月間・年間・TODO一覧でも同じ項目として扱われる。
+            const trimmed = todo.text.trim();
+            if (!trimmed) {
+              // 日付欄を空にした場合は、その日との紐付けだけを解除する。
+              // 共通TODO本体は削除・空文字化しない。
+              todo.todoId = null;
+              todo.checked = false;
+            } else if (todo.todoId) {
               const linked = todosDB.items.find(t => t.id === todo.todoId);
-              if (linked) linked.text = todo.text;
+              if (linked) {
+                linked.text = todo.text;
+                linked.done = !!todo.checked;
+              } else {
+                todo.todoId = null;
+                linkOrCreateTodo(todo);
+              }
+            } else {
+              linkOrCreateTodo(todo);
             }
+
             scheduleSave();
           });
 
@@ -1468,6 +1486,7 @@ function linkOrCreateTodo(todo){
               }
             }
             scheduleSave();
+            render();
           });
 
           todoBox.appendChild(todoLine);
@@ -1543,6 +1562,7 @@ function linkOrCreateTodo(todo){
           });
           text.addEventListener('input', (e) => {
             item.text = e.target.value;
+            syncLinkedTodosFromMaster();
             scheduleSave();
           });
 
