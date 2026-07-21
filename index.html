@@ -2975,6 +2975,26 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
     };
 
 
+    async function commitCurrentJapaneseInput(){
+      // iPhone/Safariの日本語変換中に保存を押した場合、
+      // 変換前の一部だけがモデルに残ることがあるため、先に入力を確定する。
+      const active=document.activeElement;
+      if(active && (active.matches('input[type="text"]') || active.matches('textarea'))){
+        active.blur();
+      }
+
+      // compositionend / input / blur の処理が完了するまで待つ。
+      await new Promise(resolve=>setTimeout(resolve,120));
+
+      // 表示中の入力値を必ず既存のinputハンドラへ反映する。
+      document.querySelectorAll('.event-text,.mini-text,.todo-item input[type="text"],#memo').forEach(el=>{
+        el.dispatchEvent(new Event('input',{bubbles:true}));
+      });
+
+      await new Promise(resolve=>setTimeout(resolve,30));
+      persistLocalNow();
+    }
+
     async function saveAndSyncAll(){
       const saveBtn=document.getElementById('saveBtn');
       const indicator=document.getElementById('saveIndicator');
@@ -2987,6 +3007,9 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
       indicator.textContent='端末・クラウド・Googleカレンダーへ保存しています…';
 
       try{
+        // 日本語変換中の文字列を確定し、画面の最新値をモデルへ反映する。
+        await commitCurrentJapaneseInput();
+
         // 1. 端末内へ保存
         await saveDB();
 

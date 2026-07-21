@@ -1,4 +1,4 @@
-const CACHE_VERSION='iburi-family-v22';
+const CACHE_VERSION='iburi-family-v2.0.5-ime-save-fix';
 self.addEventListener('install',event=>{self.skipWaiting();});
 self.addEventListener('activate',event=>{
   event.waitUntil((async()=>{
