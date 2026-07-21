@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- IBURI FAMILY v2.0.4: bottom navigation fixed to viewport -->
+<!-- IBURI FAMILY v2.0.5: reliable iPhone save -->
 
 <html lang="ja">
 <head>
@@ -1830,6 +1830,9 @@ function linkOrCreateTodo(todo){
     let isPulling = false;
     // 入力後、クラウド保存が完了するまでは自動読込で上書きしない
     let localDirty = false;
+    let manualSaveLockUntil = 0;
+    const LOCAL_UPDATED_KEY = 'planner2-local-updated-at-v1';
+    let lastLocalUpdatedAt = Number(localStorage.getItem(LOCAL_UPDATED_KEY) || 0);
 
     function currentWeek() {
       if (!weeksDB[currentWeekStart]) weeksDB[currentWeekStart] = emptyWeek();
@@ -1903,6 +1906,8 @@ function linkOrCreateTodo(todo){
 
     function scheduleSave() {
       lastUserEditAt = Date.now();
+      lastLocalUpdatedAt = lastUserEditAt;
+      localStorage.setItem(LOCAL_UPDATED_KEY, String(lastLocalUpdatedAt));
       localDirty = true;
       const indicator = document.getElementById('saveIndicator');
       indicator.textContent = '保存中...';
@@ -2090,6 +2095,8 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
           const event = week.days[i].events[j];
           const eventLine = document.createElement('div');
           eventLine.className = 'aligned-event-line';
+          eventLine.dataset.dayIndex = String(i);
+          eventLine.dataset.eventIndex = String(j);
           eventLine.dataset.color = event.color || 'white';
           eventLine.innerHTML = `
             ${colorPickerHtml(event.color || 'white')}
@@ -2118,6 +2125,8 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
           const todo = week.days[i].todos[j];
           const todoLine = document.createElement('div');
           todoLine.className = 'aligned-todo-line';
+          todoLine.dataset.dayIndex = String(i);
+          todoLine.dataset.todoIndex = String(j);
           todoLine.innerHTML = `
             <input type="checkbox" ${todo.checked ? 'checked' : ''}>
             <input type="text" class="mini-text" placeholder="">
@@ -2488,7 +2497,7 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
       syncLinkedTodosFromMaster();
       return JSON.stringify({
         version: 3,
-        updatedAt: new Date().toISOString(),
+        updatedAt: new Date(lastLocalUpdatedAt || Date.now()).toISOString(),
         weeks: weeksDB,
         todos: todosDB
       }, null, 2);
@@ -2496,7 +2505,7 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
 
     async function pushToGist(silent) {
       readGhInputs();
-      if (!ghCfg.token) { if (!silent) syncMsg('GitHubトークンを入力してください', 'err'); return; }
+      if (!ghCfg.token) { if (!silent) syncMsg('GitHubトークンを入力してください', 'err'); return false; }
 
       if (!silent) syncMsg('クラウドに保存中...');
       const body = {
@@ -2521,7 +2530,7 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
           const t = await res.text();
           syncMsg(`保存に失敗しました (${res.status})。トークンの権限（gist）をご確認ください。`, 'err');
           console.error('gist push failed:', res.status, t);
-          return;
+          return false;
         }
 
         const data = await res.json();
@@ -2533,9 +2542,11 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
         localDirty = false;
         if (pushTimer) { clearTimeout(pushTimer); pushTimer = null; }
         syncMsg('クラウドに保存しました（' + new Date().toLocaleTimeString('ja-JP') + '）', 'ok');
+        return true;
       } catch (e) {
         console.error(e);
         syncMsg('通信に失敗しました。ネット接続をご確認ください。', 'err');
+        return false;
       }
     }
 
@@ -2562,8 +2573,18 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
         }
 
         const parsed = JSON.parse(content);
+        const remoteUpdatedAt = Date.parse(parsed.updatedAt || '') || 0;
+        const localUpdatedAt = Number(localStorage.getItem(LOCAL_UPDATED_KEY) || lastLocalUpdatedAt || 0);
+        if (remoteUpdatedAt && localUpdatedAt && remoteUpdatedAt < localUpdatedAt) {
+          syncMsg('端末側の予定が新しいため、古いクラウドデータの上書きを止めました', 'ok');
+          return;
+        }
         if (parsed.weeks) weeksDB = parsed.weeks;
         if (parsed.todos && Array.isArray(parsed.todos.items)) todosDB = parsed.todos;
+        if (remoteUpdatedAt) {
+          lastLocalUpdatedAt = remoteUpdatedAt;
+          localStorage.setItem(LOCAL_UPDATED_KEY, String(remoteUpdatedAt));
+        }
         normalizeAllEventColors();
         syncLinkedTodosFromMaster();
 
@@ -2619,6 +2640,7 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
     async function autoPullIfReady() {
       readGhInputs();
       if (!ghCfg.token || !ghCfg.gistId || !navigator.onLine || isPulling) return;
+      if (Date.now() < manualSaveLockUntil) return;
       // 未保存・送信待ちの入力がある間は、古いクラウドデータを自動読込しない。
       // 手動の『クラウドから読込』ボタンだけは従来どおり利用できる。
       if (localDirty || pushTimer || saveTimer) return;
@@ -2975,23 +2997,69 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
     };
 
 
+    function commitVisibleWeekFieldsDirectly(){
+      const week=currentWeek();
+
+      document.querySelectorAll('.aligned-event-line').forEach(line=>{
+        const dayIndex=Number(line.dataset.dayIndex);
+        const eventIndex=Number(line.dataset.eventIndex);
+        if(!Number.isInteger(dayIndex)||!Number.isInteger(eventIndex)||!week.days[dayIndex]) return;
+        normalizeEvents(week.days[dayIndex]);
+        const input=line.querySelector('.event-text');
+        const picker=line.querySelector('.color-picker');
+        if(!input) return;
+        week.days[dayIndex].events[eventIndex]={
+          text:input.value,
+          color:(picker&&picker.dataset.color)||line.dataset.color||'white'
+        };
+        syncScheduleFromEvents(week.days[dayIndex]);
+      });
+
+      document.querySelectorAll('.aligned-todo-line').forEach(line=>{
+        const dayIndex=Number(line.dataset.dayIndex);
+        const todoIndex=Number(line.dataset.todoIndex);
+        if(!Number.isInteger(dayIndex)||!Number.isInteger(todoIndex)||!week.days[dayIndex]) return;
+        const day=week.days[dayIndex];
+        while(day.todos.length<4) day.todos.push({checked:false,text:'',todoId:null});
+        const input=line.querySelector('.mini-text');
+        const check=line.querySelector('input[type="checkbox"]');
+        const select=line.querySelector('.mini-pick');
+        const todo=day.todos[todoIndex];
+        todo.text=input?input.value:'';
+        todo.checked=!!(check&&check.checked);
+        if(select&&select.value) todo.todoId=select.value;
+        linkOrCreateTodo(todo);
+      });
+
+      lastUserEditAt=Date.now();
+      lastLocalUpdatedAt=lastUserEditAt;
+      localStorage.setItem(LOCAL_UPDATED_KEY,String(lastLocalUpdatedAt));
+      localDirty=true;
+      persistLocalNow();
+    }
+
     async function commitCurrentJapaneseInput(){
       // iPhone/Safariの日本語変換中に保存を押した場合、
       // 変換前の一部だけがモデルに残ることがあるため、先に入力を確定する。
+      // まず現在画面に見えている値を直接データ本体へ取り込む。
+      commitVisibleWeekFieldsDirectly();
+
       const active=document.activeElement;
       if(active && (active.matches('input[type="text"]') || active.matches('textarea'))){
         active.blur();
       }
 
-      // compositionend / input / blur の処理が完了するまで待つ。
-      await new Promise(resolve=>setTimeout(resolve,120));
+      // iPhoneの日本語変換確定を十分に待つ。
+      await new Promise(resolve=>setTimeout(resolve,300));
 
-      // 表示中の入力値を必ず既存のinputハンドラへ反映する。
-      document.querySelectorAll('.event-text,.mini-text,.todo-item input[type="text"],#memo').forEach(el=>{
+      // blur後に確定した最終文字列をもう一度直接取り込む。
+      commitVisibleWeekFieldsDirectly();
+
+      document.querySelectorAll('.todo-item input[type="text"],#memo').forEach(el=>{
         el.dispatchEvent(new Event('input',{bubbles:true}));
       });
 
-      await new Promise(resolve=>setTimeout(resolve,30));
+      await new Promise(resolve=>setTimeout(resolve,50));
       persistLocalNow();
     }
 
@@ -3007,6 +3075,7 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
       indicator.textContent='端末・クラウド・Googleカレンダーへ保存しています…';
 
       try{
+        manualSaveLockUntil=Date.now()+120000;
         // 日本語変換中の文字列を確定し、画面の最新値をモデルへ反映する。
         await commitCurrentJapaneseInput();
 
@@ -3020,7 +3089,11 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
             clearTimeout(pushTimer);
             pushTimer=null;
           }
-          await pushToGist(true);
+          const gistOk=await pushToGist(true);
+          if(!gistOk){
+            indicator.textContent='端末には保存しました。クラウド保存に失敗しました';
+            return;
+          }
         }
 
         // 3. Googleカレンダーへ同期
@@ -3073,6 +3146,8 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
     });
     window.addEventListener('storage', e => {
       if (e.key !== WEEKS_KEY && e.key !== TODOS_KEY) return;
+      // 別タブの古い状態で、入力直後の画面を上書きしない。
+      if (Date.now() < manualSaveLockUntil || localDirty || Date.now() - lastUserEditAt < 15000) return;
       try {
         weeksDB = JSON.parse(localStorage.getItem(WEEKS_KEY) || '{}') || {};
         todosDB = JSON.parse(localStorage.getItem(TODOS_KEY) || '{"items":[]}') || {items:[]};

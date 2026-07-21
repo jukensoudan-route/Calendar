@@ -726,6 +726,9 @@ const WEEKS_KEY='planner2-weeks-db-v1';
 const TODOS_KEY='planner2-todos-db-v1';
 const GH_KEY='planner2-github-cfg-v1';
 const GIST_FILE='route-planner2-data.json';
+const LOCAL_UPDATED_KEY='planner2-local-updated-at-v1';
+let applyingRemote=false;
+let manualSaveLockUntil=0;
 
 let weeksDB={};
 let todosDB={items:[]};
@@ -764,6 +767,9 @@ function saveLocal(){
   syncLinkedTodosFromMaster();
   localStorage.setItem(WEEKS_KEY,JSON.stringify(weeksDB));
   localStorage.setItem(TODOS_KEY,JSON.stringify(todosDB));
+  if(!applyingRemote){
+    localStorage.setItem(LOCAL_UPDATED_KEY,String(Date.now()));
+  }
 }
 function headers(){
   return {'Authorization':'Bearer '+ghCfg.token,'Accept':'application/vnd.github+json','Content-Type':'application/json'};
@@ -784,22 +790,30 @@ async function pull(){
     let content=file.content;
     if(file.truncated&&file.raw_url)content=await(await fetch(file.raw_url)).text();
     const parsed=JSON.parse(content);
+    const remoteUpdatedAt=Date.parse(parsed.updatedAt||'')||0;
+    const localUpdatedAt=Number(localStorage.getItem(LOCAL_UPDATED_KEY)||0);
+    if(remoteUpdatedAt&&localUpdatedAt&&remoteUpdatedAt<localUpdatedAt){
+      setStatus('端末側の予定が新しいため、古いクラウドデータの上書きを止めました','ok');
+      return;
+    }
+    applyingRemote=true;
     if(parsed.weeks)weeksDB=parsed.weeks;
     if(parsed.todos)todosDB=parsed.todos;
+    if(remoteUpdatedAt)localStorage.setItem(LOCAL_UPDATED_KEY,String(remoteUpdatedAt));
     normalizeAllEventColors();
     if(!todosDB||!Array.isArray(todosDB.items)) todosDB={items:[]};
-    saveLocal();render();
+    saveLocal();applyingRemote=false;render();
     setStatus('最新予定を読み込みました：'+new Date().toLocaleTimeString('ja-JP'),'ok');
   }catch(e){
     console.error(e);setStatus('読込に失敗しました。接続設定を確認してください','err');render();
-  }finally{syncing=false}
+  }finally{applyingRemote=false;syncing=false}
 }
 async function push(){
   if(!ghCfg.token||!ghCfg.gistId){setStatus('GitHub接続情報がありません','err');return}
   syncing=true;setStatus('保存して同期しています…','syncing');
   normalizeAllEventColors();
   const body={description:'進路相談室 ROUTE - 別ユーザー用週間カレンダー データ',public:false,files:{
-    [GIST_FILE]:{content:JSON.stringify({version:3,updatedAt:new Date().toISOString(),weeks:weeksDB,todos:todosDB},null,2)}
+    [GIST_FILE]:{content:JSON.stringify({version:3,updatedAt:new Date(Number(localStorage.getItem(LOCAL_UPDATED_KEY)||Date.now())).toISOString(),weeks:weeksDB,todos:todosDB},null,2)}
   }};
   try{
     const r=await fetch('https://api.github.com/gists/'+ghCfg.gistId,{method:'PATCH',headers:headers(),body:JSON.stringify(body)});
@@ -1213,6 +1227,7 @@ document.getElementById('saveBtn').onclick=async()=>{
 document.getElementById('reloadBtn').onclick=pull;
 
 document.getElementById('bottomSaveBtn').onclick=async()=>{
+  manualSaveLockUntil=Date.now()+120000;
   if(document.getElementById('modal').classList.contains('open')){
     document.getElementById('saveBtn').click();
     return;
@@ -1252,8 +1267,8 @@ window.addEventListener('pageshow',()=>{
     render();
   }
 });
-window.addEventListener('focus',()=>{if(navigator.onLine)pull()});
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&navigator.onLine)pull()});
+window.addEventListener('focus',()=>{if(navigator.onLine&&Date.now()>=manualSaveLockUntil)pull()});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&navigator.onLine&&Date.now()>=manualSaveLockUntil)pull()});
 
 
 function renderPrintCalendar(){
@@ -1316,7 +1331,7 @@ function updateYearHeader(){
 document.getElementById('prevYearBtn').onclick=()=>{YEAR--;updateYearHeader();render();};
 document.getElementById('nextYearBtn').onclick=()=>{YEAR++;updateYearHeader();render();};
 updateYearHeader();
-loadLocal();render();pull();setInterval(()=>{if(document.visibilityState==='visible'&&navigator.onLine)pull()},30000);
+loadLocal();render();pull();setInterval(()=>{if(document.visibilityState==='visible'&&navigator.onLine&&Date.now()>=manualSaveLockUntil)pull()},30000);
 
 </script>
 
