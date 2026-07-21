@@ -1,4 +1,4 @@
-const CACHE_VERSION='iburi-family-v204-buttons-layout';
+const CACHE_VERSION='iburi-family-v21-emerald-save';
 self.addEventListener('install',event=>{self.skipWaiting();});
 self.addEventListener('activate',event=>{
   event.waitUntil((async()=>{
