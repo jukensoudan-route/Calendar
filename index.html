@@ -1287,59 +1287,6 @@ body{padding-bottom:calc(92px + env(safe-area-inset-bottom,0px))!important;}
   .bottom-nav>a,.bottom-nav>button,.tabs.bottom-nav>a,.tabs.bottom-nav>button{font-size:10px!important;padding:5px 1px!important;}
 }
 
-
-  .page-schedule .memo{
-    width:100%!important;
-    display:flex!important;
-    flex-direction:column!important;
-    margin-top:4mm!important;
-    border:.35mm solid #c7d2dc!important;
-    border-radius:2mm!important;
-    overflow:hidden!important;
-    box-sizing:border-box!important;
-    height:31mm!important;
-    background:#fff!important;
-  }
-  .page-schedule .memo-header{
-    display:flex!important;
-    align-items:center!important;
-    height:8mm!important;
-    padding:0 0 0 3.5mm!important;
-    background:linear-gradient(135deg,#667f8f,#5a7485)!important;
-    color:#fff!important;
-    font-size:8.5pt!important;
-    font-weight:800!important;
-    letter-spacing:.08em!important;
-    box-sizing:border-box!important;
-  }
-  .page-schedule .memo-header::before{
-    content:'•'!important;
-    margin-right:1.5mm!important;
-    font-size:11pt!important;
-    line-height:1!important;
-  }
-  .page-schedule .memo-body-wrap{
-    display:block!important;
-    flex:1 1 auto!important;
-    height:auto!important;
-    border:0!important;
-    background:#fff!important;
-  }
-  .page-schedule .memo textarea{
-    display:block!important;
-    width:100%!important;
-    height:100%!important;
-    min-height:23mm!important;
-    padding:2mm 3mm!important;
-    box-sizing:border-box!important;
-    border:0!important;
-    resize:none!important;
-    background:repeating-linear-gradient(to bottom,#fff,#fff 5.8mm,#d9e3ea 5.8mm,#d9e3ea 6mm)!important;
-    color:#23303b!important;
-    font-size:8pt!important;
-    line-height:6mm!important;
-    outline:none!important;
-  }
 </style>
 
 <script>
@@ -1472,7 +1419,7 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
 </style>
 
 <style id="weekly-print-v204-final">
-/* v2.0.4: 週間印刷専用・上部印刷ボタン */
+/* v2.0.4.7: 週間印刷専用・A5縦・メモ欄追加 */
 .datebox{
   display:grid!important;
   grid-template-columns:minmax(0,1fr) 118px!important;
@@ -1494,8 +1441,8 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
   cursor:pointer;
   box-shadow:0 2px 7px rgba(6,59,114,.10);
 }
-.top-print-btn:hover{background:#f5fbff; border-color:#9fc2dd;}
-.top-print-btn:active{transform:translateY(1px); background:#edf7ff;}
+.top-print-btn:hover{background:#f5fbff;border-color:#9fc2dd;}
+.top-print-btn:active{transform:translateY(1px);background:#edf7ff;}
 @media screen and (max-width:700px){
   .datebox{display:grid!important;grid-template-columns:minmax(0,1fr) 96px!important;width:100%!important;gap:7px!important;align-items:stretch!important;}
   .datebox .field{min-width:0!important;}
@@ -1523,7 +1470,7 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
     justify-content:space-between!important;
     align-items:flex-end!important;
     gap:4mm!important;
-    margin:0 0 4mm!important;
+    margin:0 0 3mm!important;
     padding:0!important;
   }
   .print-week-title{
@@ -1545,14 +1492,15 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
     padding-bottom:1mm!important;
   }
   .page-schedule{
-    display:block!important;
-    flex:none!important;
+    display:flex!important;
+    flex-direction:column!important;
+    flex:1 1 auto!important;
     height:auto!important;
     min-height:0!important;
     overflow:visible!important;
   }
   .page-schedule .family-legend{display:none!important;}
-  .page-schedule .content-row{margin:0!important;display:block!important;}
+  .page-schedule .content-row{margin:0!important;display:block!important;flex:none!important;}
   .page-schedule .planner-table{
     width:100%!important;
     display:block!important;
@@ -1560,17 +1508,18 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
     border:0.35mm solid #a9bac9!important;
     border-radius:2mm!important;
     box-shadow:none!important;
+    flex:none!important;
   }
   .page-schedule .table-header{
     display:flex!important;
-    height:9mm!important;
+    height:8mm!important;
     background:#c7d2dc!important;
     color:#111!important;
     border-bottom:.35mm solid #a9bac9!important;
     box-sizing:border-box!important;
   }
   .page-schedule .col-header{
-    height:9mm!important;
+    height:8mm!important;
     padding:0!important;
     display:flex!important;
     align-items:center!important;
@@ -1578,7 +1527,7 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
     background:#c7d2dc!important;
     color:#111!important;
     border-right:.25mm solid #a9bac9!important;
-    font-size:9pt!important;
+    font-size:8.5pt!important;
     font-weight:800!important;
     letter-spacing:.06em!important;
     box-sizing:border-box!important;
@@ -1587,62 +1536,59 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
   .page-schedule .col-header.schedule{flex:1 1 auto!important;}
   .page-schedule .col-header.todo{width:46mm!important;flex:none!important;border-right:0!important;}
   .page-schedule .table-body{display:block!important;}
-  .page-schedule .day-row{
-    display:flex!important;
-    height:24.2mm!important;
-    min-height:24.2mm!important;
-    overflow:hidden!important;
-    border-bottom:.25mm solid #c7d2dc!important;
-    background:#fff!important;
-    box-shadow:inset 1mm 0 0 #0e4f8d!important;
-  }
-  .page-schedule .day-row:last-child{border-bottom:0!important;}
-  .page-schedule .day-row.sat{box-shadow:inset 1mm 0 0 #1683e6!important;}
-  .page-schedule .day-row.sun{box-shadow:inset 1mm 0 0 #e31c23!important;}
-  .page-schedule .day-label{
-    width:23mm!important;
-    flex:none!important;
-    height:24.2mm!important;
+  .page-schedule .memo{
+    width:100%!important;
     display:flex!important;
     flex-direction:column!important;
-    align-items:center!important;
-    justify-content:center!important;
-    padding:1mm!important;
+    margin-top:3mm!important;
+    border:.35mm solid #c7d2dc!important;
+    border-radius:2mm!important;
+    overflow:hidden!important;
     box-sizing:border-box!important;
-    border-right:.25mm solid #c7d2dc!important;
+    background:#fff!important;
+    flex:1 1 auto!important;
+    min-height:0!important;
+  }
+  .page-schedule .memo-header{
+    display:flex!important;
+    align-items:center!important;
+    height:8mm!important;
+    padding:0 0 0 3mm!important;
+    background:linear-gradient(135deg,#667f8f,#5a7485)!important;
+    color:#fff!important;
+    font-size:8.3pt!important;
+    font-weight:800!important;
+    letter-spacing:.08em!important;
+    box-sizing:border-box!important;
+  }
+  .page-schedule .memo-header::before{
+    content:'•'!important;
+    margin-right:1.4mm!important;
+    font-size:10pt!important;
+    line-height:1!important;
+  }
+  .page-schedule .memo-body-wrap{
+    display:block!important;
+    flex:1 1 auto!important;
+    min-height:0!important;
+    border:0!important;
     background:#fff!important;
   }
-  .page-schedule .day-label .date-num{font-size:13pt!important;line-height:1.05!important;font-weight:900!important;color:#0b2745!important;}
-  .page-schedule .day-label .dow-jp{font-size:8pt!important;line-height:1.1!important;margin-top:1mm!important;font-weight:800!important;color:#0b2745!important;}
-  .page-schedule .day-row.sat .day-label .date-num,
-  .page-schedule .day-row.sat .day-label .dow-jp{color:#086fd1!important;}
-  .page-schedule .day-row.sun .day-label .date-num,
-  .page-schedule .day-row.sun .day-label .dow-jp,
-  .page-schedule .holiday-name{color:#df171d!important;}
-  .page-schedule .holiday-name{font-size:6.8pt!important;margin-top:1mm!important;font-weight:800!important;}
-  .page-schedule .day-content{
-    flex:1 1 auto!important;
-    height:24.2mm!important;
-    min-width:0!important;
-    overflow:hidden!important;
-    border-right:.25mm solid #c7d2dc!important;
+  .page-schedule .memo textarea{
+    display:block!important;
+    width:100%!important;
+    height:100%!important;
+    min-height:0!important;
+    padding:2mm 3mm!important;
+    box-sizing:border-box!important;
+    border:0!important;
+    resize:none!important;
+    background:repeating-linear-gradient(to bottom,#fff,#fff 5.8mm,#d9e3ea 5.8mm,#d9e3ea 6mm)!important;
+    color:#23303b!important;
+    font-size:8pt!important;
+    line-height:6mm!important;
+    outline:none!important;
   }
-  .page-schedule .event-lines{height:24.2mm!important;padding:1mm 2mm!important;box-sizing:border-box!important;display:flex!important;flex-direction:column!important;justify-content:flex-start!important;gap:0!important;}
-  .page-schedule .event-line{height:5.55mm!important;min-height:5.55mm!important;border-left:0!important;display:flex!important;align-items:center!important;gap:1.5mm!important;overflow:hidden!important;}
-  .page-schedule .event-line::before{
-    content:'□'!important;
-    flex:none!important;
-    font-size:9pt!important;
-    line-height:1!important;
-    color:#637789!important;
-  }
-  .page-schedule .event-color,.page-schedule .color-picker{display:none!important;}
-  .page-schedule .event-text{font-size:8pt!important;line-height:1.15!important;font-weight:650!important;border-bottom:0!important;padding:0!important;color:#111!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}
-  .page-schedule .day-todo-column{width:46mm!important;flex:none!important;height:24.2mm!important;}
-  .page-schedule .day-todo-cell{height:24.2mm!important;padding:1mm 2mm!important;box-sizing:border-box!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;}
-  .page-schedule .mini-check{height:5.55mm!important;min-height:5.55mm!important;display:flex!important;align-items:center!important;gap:1.5mm!important;}
-  .page-schedule .mini-check input[type=checkbox]{width:3.2mm!important;height:3.2mm!important;margin:0!important;accent-color:#063b72!important;}
-  .page-schedule .mini-check .mini-text{font-size:7.7pt!important;line-height:1.1!important;border-bottom:.2mm dotted #b4c1cc!important;color:#111!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}
 }
 </style>
 
@@ -1651,14 +1597,13 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
 @media print{
   .page-schedule .unified-week-body{display:block!important;width:100%!important;}
   .page-schedule .unified-week-body .unified-day-row:first-child{border-top:.35mm solid #a9bac9!important;}
-
   .page-schedule .unified-day-row{
     display:grid!important;
     grid-template-columns:23mm minmax(0,1fr) 46mm!important;
     width:100%!important;
-    height:19mm!important;
-    min-height:19mm!important;
-    max-height:19mm!important;
+    height:18mm!important;
+    min-height:18mm!important;
+    max-height:18mm!important;
     overflow:hidden!important;
     border-bottom:.25mm solid #c7d2dc!important;
     background:#fff!important;
@@ -1672,15 +1617,15 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
   .page-schedule .unified-day-row:has(.unified-day-label.sun){box-shadow:inset 1mm 0 0 #e31c23!important;}
   .page-schedule .unified-day-label{
     width:auto!important;
-    height:19mm!important;
+    height:18mm!important;
     min-width:0!important;
-    padding:1mm!important;
+    padding:.8mm!important;
     border-right:.25mm solid #c7d2dc!important;
     background:#fff!important;
     box-sizing:border-box!important;
   }
-  .page-schedule .unified-day-label .date-num{font-size:11.5pt!important;line-height:1.05!important;font-weight:900!important;color:#0b2745!important;}
-  .page-schedule .unified-day-label .dow-jp{font-size:7.2pt!important;line-height:1.05!important;margin-top:.6mm!important;font-weight:800!important;color:#0b2745!important;}
+  .page-schedule .unified-day-label .date-num{font-size:11pt!important;line-height:1.05!important;font-weight:900!important;color:#0b2745!important;}
+  .page-schedule .unified-day-label .dow-jp{font-size:7pt!important;line-height:1.02!important;margin-top:.5mm!important;font-weight:800!important;color:#0b2745!important;}
   .page-schedule .unified-day-label.sat .date-num,
   .page-schedule .unified-day-label.sat .dow-jp{color:#086fd1!important;}
   .page-schedule .unified-day-label.sun .date-num,
@@ -1688,15 +1633,15 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
   .page-schedule .unified-day-label.holiday .date-num,
   .page-schedule .unified-day-label.holiday .dow-jp,
   .page-schedule .holiday-name{color:#df171d!important;}
-  .page-schedule .holiday-name{font-size:5.8pt!important;line-height:1!important;margin-top:.6mm!important;font-weight:800!important;white-space:nowrap!important;}
+  .page-schedule .holiday-name{font-size:5.5pt!important;line-height:1!important;margin-top:.5mm!important;font-weight:800!important;white-space:nowrap!important;}
   .page-schedule .aligned-schedule,
   .page-schedule .aligned-todo{
     display:grid!important;
-    grid-template-rows:repeat(4,4.35mm)!important;
+    grid-template-rows:repeat(4,4.1mm)!important;
     align-content:start!important;
-    height:19mm!important;
+    height:18mm!important;
     min-width:0!important;
-    padding:.8mm 1.6mm!important;
+    padding:.7mm 1.6mm!important;
     box-sizing:border-box!important;
     overflow:hidden!important;
     background:#fff!important;
@@ -1704,18 +1649,18 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
   .page-schedule .aligned-schedule{border-right:.25mm solid #c7d2dc!important;}
   .page-schedule .aligned-event-line,
   .page-schedule .aligned-todo-line{
-    height:4.35mm!important;
-    min-height:4.35mm!important;
+    height:4.1mm!important;
+    min-height:4.1mm!important;
     display:flex!important;
     align-items:center!important;
-    gap:1.5mm!important;
+    gap:1.2mm!important;
     overflow:hidden!important;
     box-sizing:border-box!important;
   }
   .page-schedule .aligned-event-line::before{
     content:'□'!important;
     flex:none!important;
-    font-size:9pt!important;
+    font-size:8.5pt!important;
     line-height:1!important;
     color:#637789!important;
   }
@@ -1728,16 +1673,16 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
     border:0!important;
     background:transparent!important;
     color:#111!important;
-    font-size:7.2pt!important;
-    line-height:1.1!important;
+    font-size:7pt!important;
+    line-height:1.05!important;
     font-weight:650!important;
     white-space:nowrap!important;
     overflow:hidden!important;
     text-overflow:ellipsis!important;
   }
   .page-schedule .aligned-todo-line input[type=checkbox]{
-    width:3.2mm!important;
-    height:3.2mm!important;
+    width:3mm!important;
+    height:3mm!important;
     flex:none!important;
     margin:0!important;
     accent-color:#063b72!important;
@@ -1745,13 +1690,13 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
   .page-schedule .aligned-todo-line .mini-text{
     height:auto!important;
     min-width:0!important;
-    padding:0 0 .4mm!important;
+    padding:0 0 .3mm!important;
     border:0!important;
     border-bottom:.2mm dotted #b4c1cc!important;
     background:transparent!important;
     color:#111!important;
-    font-size:7.7pt!important;
-    line-height:1.1!important;
+    font-size:6.8pt!important;
+    line-height:1.02!important;
     white-space:nowrap!important;
     overflow:hidden!important;
     text-overflow:ellipsis!important;
@@ -2664,6 +2609,9 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
       const pageClone = document.getElementById('pageSchedule').cloneNode(true);
       pageClone.removeAttribute('id');
       pageClone.className = 'page-schedule';
+      const sourceMemo = document.getElementById('memoText');
+      const printMemo = pageClone.querySelector('#memoText');
+      if (sourceMemo && printMemo) printMemo.value = sourceMemo.value || '';
       stripForPrint(pageClone);
 
       currentWeekStart = saved;
