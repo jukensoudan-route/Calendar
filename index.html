@@ -1287,6 +1287,59 @@ body{padding-bottom:calc(92px + env(safe-area-inset-bottom,0px))!important;}
   .bottom-nav>a,.bottom-nav>button,.tabs.bottom-nav>a,.tabs.bottom-nav>button{font-size:10px!important;padding:5px 1px!important;}
 }
 
+
+  .page-schedule .memo{
+    width:100%!important;
+    display:flex!important;
+    flex-direction:column!important;
+    margin-top:4mm!important;
+    border:.35mm solid #c7d2dc!important;
+    border-radius:2mm!important;
+    overflow:hidden!important;
+    box-sizing:border-box!important;
+    height:31mm!important;
+    background:#fff!important;
+  }
+  .page-schedule .memo-header{
+    display:flex!important;
+    align-items:center!important;
+    height:8mm!important;
+    padding:0 0 0 3.5mm!important;
+    background:linear-gradient(135deg,#667f8f,#5a7485)!important;
+    color:#fff!important;
+    font-size:8.5pt!important;
+    font-weight:800!important;
+    letter-spacing:.08em!important;
+    box-sizing:border-box!important;
+  }
+  .page-schedule .memo-header::before{
+    content:'•'!important;
+    margin-right:1.5mm!important;
+    font-size:11pt!important;
+    line-height:1!important;
+  }
+  .page-schedule .memo-body-wrap{
+    display:block!important;
+    flex:1 1 auto!important;
+    height:auto!important;
+    border:0!important;
+    background:#fff!important;
+  }
+  .page-schedule .memo textarea{
+    display:block!important;
+    width:100%!important;
+    height:100%!important;
+    min-height:23mm!important;
+    padding:2mm 3mm!important;
+    box-sizing:border-box!important;
+    border:0!important;
+    resize:none!important;
+    background:repeating-linear-gradient(to bottom,#fff,#fff 5.8mm,#d9e3ea 5.8mm,#d9e3ea 6mm)!important;
+    color:#23303b!important;
+    font-size:8pt!important;
+    line-height:6mm!important;
+    outline:none!important;
+  }
 </style>
 
 <script>
@@ -1456,7 +1509,7 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
     width:148mm!important;
     height:210mm!important;
     margin:0!important;
-    padding:10mm!important;
+    padding:5mm 10mm 5mm 5mm!important;
     box-sizing:border-box!important;
     overflow:hidden!important;
     display:flex!important;
@@ -1498,8 +1551,7 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
     min-height:0!important;
     overflow:visible!important;
   }
-  .page-schedule .family-legend,
-  .page-schedule .memo{display:none!important;}
+  .page-schedule .family-legend{display:none!important;}
   .page-schedule .content-row{margin:0!important;display:block!important;}
   .page-schedule .planner-table{
     width:100%!important;
@@ -1508,7 +1560,6 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
     border:0.35mm solid #a9bac9!important;
     border-radius:2mm!important;
     box-shadow:none!important;
-    height:178.4mm!important;
   }
   .page-schedule .table-header{
     display:flex!important;
@@ -1605,9 +1656,9 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
     display:grid!important;
     grid-template-columns:23mm minmax(0,1fr) 46mm!important;
     width:100%!important;
-    height:24.2mm!important;
-    min-height:24.2mm!important;
-    max-height:24.2mm!important;
+    height:19mm!important;
+    min-height:19mm!important;
+    max-height:19mm!important;
     overflow:hidden!important;
     border-bottom:.25mm solid #c7d2dc!important;
     background:#fff!important;
@@ -1621,15 +1672,15 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
   .page-schedule .unified-day-row:has(.unified-day-label.sun){box-shadow:inset 1mm 0 0 #e31c23!important;}
   .page-schedule .unified-day-label{
     width:auto!important;
-    height:24.2mm!important;
+    height:19mm!important;
     min-width:0!important;
     padding:1mm!important;
     border-right:.25mm solid #c7d2dc!important;
     background:#fff!important;
     box-sizing:border-box!important;
   }
-  .page-schedule .unified-day-label .date-num{font-size:13pt!important;line-height:1.05!important;font-weight:900!important;color:#0b2745!important;}
-  .page-schedule .unified-day-label .dow-jp{font-size:8pt!important;line-height:1.1!important;margin-top:1mm!important;font-weight:800!important;color:#0b2745!important;}
+  .page-schedule .unified-day-label .date-num{font-size:11.5pt!important;line-height:1.05!important;font-weight:900!important;color:#0b2745!important;}
+  .page-schedule .unified-day-label .dow-jp{font-size:7.2pt!important;line-height:1.05!important;margin-top:.6mm!important;font-weight:800!important;color:#0b2745!important;}
   .page-schedule .unified-day-label.sat .date-num,
   .page-schedule .unified-day-label.sat .dow-jp{color:#086fd1!important;}
   .page-schedule .unified-day-label.sun .date-num,
@@ -1637,15 +1688,15 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
   .page-schedule .unified-day-label.holiday .date-num,
   .page-schedule .unified-day-label.holiday .dow-jp,
   .page-schedule .holiday-name{color:#df171d!important;}
-  .page-schedule .holiday-name{font-size:6.5pt!important;line-height:1!important;margin-top:1mm!important;font-weight:800!important;white-space:nowrap!important;}
+  .page-schedule .holiday-name{font-size:5.8pt!important;line-height:1!important;margin-top:.6mm!important;font-weight:800!important;white-space:nowrap!important;}
   .page-schedule .aligned-schedule,
   .page-schedule .aligned-todo{
     display:grid!important;
-    grid-template-rows:repeat(4,5.55mm)!important;
+    grid-template-rows:repeat(4,4.35mm)!important;
     align-content:start!important;
-    height:24.2mm!important;
+    height:19mm!important;
     min-width:0!important;
-    padding:1mm 2mm!important;
+    padding:.8mm 1.6mm!important;
     box-sizing:border-box!important;
     overflow:hidden!important;
     background:#fff!important;
@@ -1653,8 +1704,8 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
   .page-schedule .aligned-schedule{border-right:.25mm solid #c7d2dc!important;}
   .page-schedule .aligned-event-line,
   .page-schedule .aligned-todo-line{
-    height:5.55mm!important;
-    min-height:5.55mm!important;
+    height:4.35mm!important;
+    min-height:4.35mm!important;
     display:flex!important;
     align-items:center!important;
     gap:1.5mm!important;
@@ -1677,7 +1728,7 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
     border:0!important;
     background:transparent!important;
     color:#111!important;
-    font-size:8pt!important;
+    font-size:7.2pt!important;
     line-height:1.1!important;
     font-weight:650!important;
     white-space:nowrap!important;
@@ -2599,7 +2650,7 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
 
     function stripForPrint(root) {
       root.querySelectorAll('[placeholder]').forEach(el => el.removeAttribute('placeholder'));
-      root.querySelectorAll('.mini-pick, .family-legend, .memo').forEach(el => el.remove());
+      root.querySelectorAll('.mini-pick, .family-legend').forEach(el => el.remove());
       const firstHeader = root.querySelector('.col-header.date');
       if (firstHeader) firstHeader.textContent = '日付';
       return root;
