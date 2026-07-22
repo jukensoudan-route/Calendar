@@ -1,6 +1,4 @@
 <!DOCTYPE html>
-<!-- IBURI FAMILY v2.0.5: reliable iPhone save -->
-
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -1394,15 +1392,19 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
 .tabs.bottom-nav>#bottomSaveBtn,
 .bottom-nav>#bottomSaveBtn{
   grid-column:1!important;
-  background:#063b72!important;
+  background:linear-gradient(135deg,var(--blue),var(--teal))!important;
   color:#ffffff!important;
-  border-color:#ffffff!important;
+  border:none!important;
   font-weight:800!important;
   box-shadow:0 2px 5px rgba(0,0,0,.22)!important;
 }
+.tabs.bottom-nav>#bottomSaveBtn:hover,
+.bottom-nav>#bottomSaveBtn:hover{
+  filter:brightness(1.03)!important;
+}
 .tabs.bottom-nav>#bottomSaveBtn:active,
 .bottom-nav>#bottomSaveBtn:active{
-  background:#03294f!important;
+  background:linear-gradient(135deg,#1f78c9,#20b8ae)!important;
   color:#ffffff!important;
 }
 @media screen and (max-width:430px){
@@ -1416,30 +1418,288 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
 }
 </style>
 
-<style id="save-button-emerald-final">
-/* 全ページ共通：保存ボタンをエメラルドグリーンに統一 */
-.tabs.bottom-nav>#bottomSaveBtn,
-.bottom-nav>#bottomSaveBtn,
-#bottomSaveBtn{
-  background:#10b981!important;
-  color:#ffffff!important;
-  border-color:#ffffff!important;
-  box-shadow:0 2px 7px rgba(5,120,87,.35)!important;
+<style id="weekly-print-v204-final">
+/* v2.0.4: 週間印刷専用・上部印刷ボタン */
+.datebox{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) 118px!important;
+  gap:10px!important;
+  align-items:stretch!important;
 }
-.tabs.bottom-nav>#bottomSaveBtn:active,
-.bottom-nav>#bottomSaveBtn:active,
-#bottomSaveBtn:active{
-  background:#059669!important;
-  color:#ffffff!important;
+.datebox .field.range{min-width:0!important;}
+.top-print-btn{
+  width:100%;
+  align-self:stretch;
+  min-width:118px;
+  border:1px solid #c8dae0;
+  border-radius:8px;
+  padding:7px 14px;
+  background:#ffffff;
+  color:#0d4f8b;
+  font:800 12px/1.2 inherit;
+  letter-spacing:.04em;
+  cursor:pointer;
+  box-shadow:0 2px 7px rgba(6,59,114,.10);
+}
+.top-print-btn:hover{background:#f5fbff; border-color:#9fc2dd;}
+.top-print-btn:active{transform:translateY(1px); background:#edf7ff;}
+@media screen and (max-width:700px){
+  .datebox{display:grid!important;grid-template-columns:minmax(0,1fr) 96px!important;width:100%!important;gap:7px!important;align-items:stretch!important;}
+  .datebox .field{min-width:0!important;}
+  .top-print-btn{min-width:96px!important;padding:8px 9px!important;font-size:11px!important;}
+}
+
+@media print{
+  @page{size:A5 portrait;margin:0!important;}
+  html,body{width:148mm!important;height:auto!important;margin:0!important;padding:0!important;background:#fff!important;}
+  .print-sheet{
+    width:148mm!important;
+    height:210mm!important;
+    margin:0!important;
+    padding:10mm!important;
+    box-sizing:border-box!important;
+    overflow:hidden!important;
+    display:flex!important;
+    flex-direction:column!important;
+    color:#0b2745!important;
+    background:#fff!important;
+  }
+  .print-week-heading{
+    flex:none!important;
+    display:flex!important;
+    justify-content:space-between!important;
+    align-items:flex-end!important;
+    gap:4mm!important;
+    margin:0 0 4mm!important;
+    padding:0!important;
+  }
+  .print-week-title{
+    border-left:1.5mm solid #063b72!important;
+    padding-left:3mm!important;
+    font-size:17pt!important;
+    line-height:1.15!important;
+    font-weight:900!important;
+    letter-spacing:.04em!important;
+    color:#082d59!important;
+    white-space:nowrap!important;
+  }
+  .print-week-range{
+    font-size:8.5pt!important;
+    line-height:1.2!important;
+    font-weight:800!important;
+    color:#163f6a!important;
+    white-space:nowrap!important;
+    padding-bottom:1mm!important;
+  }
+  .page-schedule{
+    display:block!important;
+    flex:none!important;
+    height:auto!important;
+    min-height:0!important;
+    overflow:visible!important;
+  }
+  .page-schedule .family-legend,
+  .page-schedule .memo{display:none!important;}
+  .page-schedule .content-row{margin:0!important;display:block!important;}
+  .page-schedule .planner-table{
+    width:100%!important;
+    display:block!important;
+    overflow:hidden!important;
+    border:0.35mm solid #a9bac9!important;
+    border-radius:2mm!important;
+    box-shadow:none!important;
+  }
+  .page-schedule .table-header{
+    display:flex!important;
+    height:9mm!important;
+    background:#063b72!important;
+    color:#fff!important;
+  }
+  .page-schedule .col-header{
+    height:9mm!important;
+    padding:0!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    background:#063b72!important;
+    color:#fff!important;
+    border-right:.25mm solid rgba(255,255,255,.45)!important;
+    font-size:9pt!important;
+    font-weight:800!important;
+    letter-spacing:.06em!important;
+    box-sizing:border-box!important;
+  }
+  .page-schedule .col-header.date{width:23mm!important;flex:none!important;}
+  .page-schedule .col-header.schedule{flex:1 1 auto!important;}
+  .page-schedule .col-header.todo{width:46mm!important;flex:none!important;border-right:0!important;}
+  .page-schedule .table-body{display:block!important;}
+  .page-schedule .day-row{
+    display:flex!important;
+    height:23mm!important;
+    min-height:23mm!important;
+    overflow:hidden!important;
+    border-bottom:.25mm solid #c7d2dc!important;
+    background:#fff!important;
+    box-shadow:inset 1mm 0 0 #0e4f8d!important;
+  }
+  .page-schedule .day-row:last-child{border-bottom:0!important;}
+  .page-schedule .day-row.sat{box-shadow:inset 1mm 0 0 #1683e6!important;}
+  .page-schedule .day-row.sun{box-shadow:inset 1mm 0 0 #e31c23!important;}
+  .page-schedule .day-label{
+    width:23mm!important;
+    flex:none!important;
+    height:23mm!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    padding:1mm!important;
+    box-sizing:border-box!important;
+    border-right:.25mm solid #c7d2dc!important;
+    background:#fff!important;
+  }
+  .page-schedule .day-label .date-num{font-size:13pt!important;line-height:1.05!important;font-weight:900!important;color:#0b2745!important;}
+  .page-schedule .day-label .dow-jp{font-size:8pt!important;line-height:1.1!important;margin-top:1mm!important;font-weight:800!important;color:#0b2745!important;}
+  .page-schedule .day-row.sat .day-label .date-num,
+  .page-schedule .day-row.sat .day-label .dow-jp{color:#086fd1!important;}
+  .page-schedule .day-row.sun .day-label .date-num,
+  .page-schedule .day-row.sun .day-label .dow-jp,
+  .page-schedule .holiday-name{color:#df171d!important;}
+  .page-schedule .holiday-name{font-size:6.8pt!important;margin-top:1mm!important;font-weight:800!important;}
+  .page-schedule .day-content{
+    flex:1 1 auto!important;
+    height:23mm!important;
+    min-width:0!important;
+    overflow:hidden!important;
+    border-right:.25mm solid #c7d2dc!important;
+  }
+  .page-schedule .event-lines{height:23mm!important;padding:1mm 2mm!important;box-sizing:border-box!important;display:flex!important;flex-direction:column!important;justify-content:flex-start!important;gap:0!important;}
+  .page-schedule .event-line{height:5.2mm!important;min-height:5.2mm!important;border-left:0!important;display:flex!important;align-items:center!important;gap:1.5mm!important;overflow:hidden!important;}
+  .page-schedule .event-line::before{
+    content:'□'!important;
+    flex:none!important;
+    font-size:9pt!important;
+    line-height:1!important;
+    color:#637789!important;
+  }
+  .page-schedule .event-color,.page-schedule .color-picker{display:none!important;}
+  .page-schedule .event-text{font-size:8pt!important;line-height:1.15!important;font-weight:650!important;border-bottom:0!important;padding:0!important;color:#111!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}
+  .page-schedule .day-todo-column{width:46mm!important;flex:none!important;height:23mm!important;}
+  .page-schedule .day-todo-cell{height:23mm!important;padding:1mm 2mm!important;box-sizing:border-box!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;}
+  .page-schedule .mini-check{height:5.2mm!important;min-height:5.2mm!important;display:flex!important;align-items:center!important;gap:1.5mm!important;}
+  .page-schedule .mini-check input[type=checkbox]{width:3.2mm!important;height:3.2mm!important;margin:0!important;accent-color:#063b72!important;}
+  .page-schedule .mini-check .mini-text{font-size:7.7pt!important;line-height:1.1!important;border-bottom:.2mm dotted #b4c1cc!important;color:#111!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}
 }
 </style>
 
 
-<style id="bottom-nav-v22-background-unified">
-/* v22: 全ページの下部バー背景を同じ水色に統一 */
-.tabs.bottom-nav,
-.bottom-nav{
-  background:#2f9bd3!important;
+<style id="weekly-print-unified-v204-final">
+@media print{
+  .page-schedule .unified-week-body{display:block!important;width:100%!important;}
+  .page-schedule .unified-day-row{
+    display:grid!important;
+    grid-template-columns:23mm minmax(0,1fr) 46mm!important;
+    width:100%!important;
+    height:23mm!important;
+    min-height:23mm!important;
+    max-height:23mm!important;
+    overflow:hidden!important;
+    border-bottom:.25mm solid #c7d2dc!important;
+    background:#fff!important;
+    box-shadow:inset 1mm 0 0 #0e4f8d!important;
+    box-sizing:border-box!important;
+  }
+  .page-schedule .unified-day-row:last-child{border-bottom:0!important;}
+  .page-schedule .unified-day-row:nth-child(odd){background:#fff!important;}
+  .page-schedule .unified-day-row.today{background:#fff!important;}
+  .page-schedule .unified-day-row:has(.unified-day-label.sat){box-shadow:inset 1mm 0 0 #1683e6!important;}
+  .page-schedule .unified-day-row:has(.unified-day-label.sun){box-shadow:inset 1mm 0 0 #e31c23!important;}
+  .page-schedule .unified-day-label{
+    width:auto!important;
+    height:23mm!important;
+    min-width:0!important;
+    padding:1mm!important;
+    border-right:.25mm solid #c7d2dc!important;
+    background:#fff!important;
+    box-sizing:border-box!important;
+  }
+  .page-schedule .unified-day-label .date-num{font-size:13pt!important;line-height:1.05!important;font-weight:900!important;color:#0b2745!important;}
+  .page-schedule .unified-day-label .dow-jp{font-size:8pt!important;line-height:1.1!important;margin-top:1mm!important;font-weight:800!important;color:#0b2745!important;}
+  .page-schedule .unified-day-label.sat .date-num,
+  .page-schedule .unified-day-label.sat .dow-jp{color:#086fd1!important;}
+  .page-schedule .unified-day-label.sun .date-num,
+  .page-schedule .unified-day-label.sun .dow-jp,
+  .page-schedule .unified-day-label.holiday .date-num,
+  .page-schedule .unified-day-label.holiday .dow-jp,
+  .page-schedule .holiday-name{color:#df171d!important;}
+  .page-schedule .holiday-name{font-size:6.5pt!important;line-height:1!important;margin-top:1mm!important;font-weight:800!important;white-space:nowrap!important;}
+  .page-schedule .aligned-schedule,
+  .page-schedule .aligned-todo{
+    display:grid!important;
+    grid-template-rows:repeat(4,5.2mm)!important;
+    align-content:start!important;
+    height:23mm!important;
+    min-width:0!important;
+    padding:1mm 2mm!important;
+    box-sizing:border-box!important;
+    overflow:hidden!important;
+    background:#fff!important;
+  }
+  .page-schedule .aligned-schedule{border-right:.25mm solid #c7d2dc!important;}
+  .page-schedule .aligned-event-line,
+  .page-schedule .aligned-todo-line{
+    height:5.2mm!important;
+    min-height:5.2mm!important;
+    display:flex!important;
+    align-items:center!important;
+    gap:1.5mm!important;
+    overflow:hidden!important;
+    box-sizing:border-box!important;
+  }
+  .page-schedule .aligned-event-line::before{
+    content:'□'!important;
+    flex:none!important;
+    font-size:9pt!important;
+    line-height:1!important;
+    color:#637789!important;
+  }
+  .page-schedule .aligned-event-line .color-picker,
+  .page-schedule .aligned-event-line .color-tile{display:none!important;}
+  .page-schedule .aligned-event-line .event-text{
+    height:auto!important;
+    min-width:0!important;
+    padding:0!important;
+    border:0!important;
+    background:transparent!important;
+    color:#111!important;
+    font-size:8pt!important;
+    line-height:1.1!important;
+    font-weight:650!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  .page-schedule .aligned-todo-line input[type=checkbox]{
+    width:3.2mm!important;
+    height:3.2mm!important;
+    flex:none!important;
+    margin:0!important;
+    accent-color:#063b72!important;
+  }
+  .page-schedule .aligned-todo-line .mini-text{
+    height:auto!important;
+    min-width:0!important;
+    padding:0 0 .4mm!important;
+    border:0!important;
+    border-bottom:.2mm dotted #b4c1cc!important;
+    background:transparent!important;
+    color:#111!important;
+    font-size:7.7pt!important;
+    line-height:1.1!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
 }
 </style>
 
@@ -1464,6 +1724,7 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
             <button id="nextWeekBtn" class="week-nav-btn" type="button">次の週 →</button>
           </div>
         </div>
+        <button id="printBtn" class="top-print-btn" type="button">印刷</button>
       </div>
     </div>
     <div class="accent-bar"></div>
@@ -1523,23 +1784,6 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
     <div class="footer">
       <div class="brand">進路相談室 ROUTE</div>
       <div class="tagline">すべての家庭に、進路の地図を。</div>
-    </div>
-
-    <div class="print-options">
-      <label class="print-opt">
-        <input type="checkbox" id="optWeek" checked>
-        <span>週間表</span>
-        <input type="number" id="printWeeksInput" min="1" max="12" value="1">
-        <span class="print-unit">週分</span>
-      </label>
-      <label class="print-opt">
-        <input type="checkbox" id="optTodo" checked>
-        <span>TODOリスト</span>
-      </label>
-      <label class="print-opt">
-        <input type="checkbox" id="optDone">
-        <span>完了リスト</span>
-      </label>
     </div>
 
     <div class="sync-panel">
@@ -1602,7 +1846,6 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
 
     <div class="toolbar">
       <button class="primary" id="saveBtn">保存する</button>
-      <button id="printBtn">印刷する</button>
       <button id="resetBtn">クリア</button>
     </div>
     <div class="save-indicator" id="saveIndicator"></div>
@@ -1824,15 +2067,11 @@ function linkOrCreateTodo(todo){
     let weeksDB = {};              // keyed by week start date (YYYY-MM-DD)
     let todosDB = { items: [] };   // master TODO database (grows; never auto-trimmed)
     let currentWeekStart = fmtDateInput(getMondayOf(null));
-    let printWeeks = 1;            // how many weeks to print
     let saveTimer = null;
     let lastUserEditAt = 0;
     let isPulling = false;
     // 入力後、クラウド保存が完了するまでは自動読込で上書きしない
     let localDirty = false;
-    let manualSaveLockUntil = 0;
-    const LOCAL_UPDATED_KEY = 'planner2-local-updated-at-v1';
-    let lastLocalUpdatedAt = Number(localStorage.getItem(LOCAL_UPDATED_KEY) || 0);
 
     function currentWeek() {
       if (!weeksDB[currentWeekStart]) weeksDB[currentWeekStart] = emptyWeek();
@@ -1906,8 +2145,6 @@ function linkOrCreateTodo(todo){
 
     function scheduleSave() {
       lastUserEditAt = Date.now();
-      lastLocalUpdatedAt = lastUserEditAt;
-      localStorage.setItem(LOCAL_UPDATED_KEY, String(lastLocalUpdatedAt));
       localDirty = true;
       const indicator = document.getElementById('saveIndicator');
       indicator.textContent = '保存中...';
@@ -2095,8 +2332,6 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
           const event = week.days[i].events[j];
           const eventLine = document.createElement('div');
           eventLine.className = 'aligned-event-line';
-          eventLine.dataset.dayIndex = String(i);
-          eventLine.dataset.eventIndex = String(j);
           eventLine.dataset.color = event.color || 'white';
           eventLine.innerHTML = `
             ${colorPickerHtml(event.color || 'white')}
@@ -2125,8 +2360,6 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
           const todo = week.days[i].todos[j];
           const todoLine = document.createElement('div');
           todoLine.className = 'aligned-todo-line';
-          todoLine.dataset.dayIndex = String(i);
-          todoLine.dataset.todoIndex = String(j);
           todoLine.innerHTML = `
             <input type="checkbox" ${todo.checked ? 'checked' : ''}>
             <input type="text" class="mini-text" placeholder="">
@@ -2304,9 +2537,6 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
       scheduleSave();
     });
     document.getElementById('printBtn').addEventListener('click', doPrint);
-    document.getElementById('optWeek').addEventListener('change', (e) => {
-      document.getElementById('printWeeksInput').disabled = !e.target.checked;
-    });
     document.getElementById('tabSchedule').addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); switchTab('schedule'); });
     document.getElementById('tabTodo').addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); switchTab('todo'); });
     document.getElementById('tabDone').addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); switchTab('done'); });
@@ -2345,99 +2575,54 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
       return sheet;
     }
 
-    function cloneHeaderFor(weekStart) {
-      const header = document.querySelector('.header').cloneNode(true);
-      const bar = document.querySelector('.accent-bar').cloneNode(true);
-
+    function makeWeekPrintHeading(weekStart) {
       const startD = new Date(weekStart + 'T00:00:00');
       const endD = new Date(startD);
       endD.setDate(startD.getDate() + 6);
 
-      const startLabel = header.querySelector('#startDateLabel, .start-date');
-      if (startLabel) {
-        startLabel.removeAttribute('id');
-        startLabel.textContent =
-          `${startD.getFullYear()}/${pad(startD.getMonth()+1)}/${pad(startD.getDate())}`;
-      }
-      const endInput = header.querySelector('#endDateInput, input[type="date"]');
-      if (endInput) {
-        // Replace the date picker with plain text so print shows no widget chrome
-        const span = document.createElement('span');
-        span.className = 'start-date';
-        span.textContent =
-          `${endD.getFullYear()}/${pad(endD.getMonth()+1)}/${pad(endD.getDate())}`;
-        endInput.parentNode.replaceChild(span, endInput);
-      }
-      return [header, bar];
+      const heading = document.createElement('div');
+      heading.className = 'print-week-heading';
+      heading.innerHTML = `
+        <div class="print-week-title">週間スケジュール</div>
+        <div class="print-week-range">
+          ${startD.getFullYear()}/${pad(startD.getMonth()+1)}/${pad(startD.getDate())}（月）
+          ～
+          ${endD.getFullYear()}/${pad(endD.getMonth()+1)}/${pad(endD.getDate())}（日）
+        </div>`;
+      return heading;
     }
 
     function stripForPrint(root) {
-      // Placeholders must not appear on paper
       root.querySelectorAll('[placeholder]').forEach(el => el.removeAttribute('placeholder'));
-      // Dropdown pickers are an on-screen affordance only
-      root.querySelectorAll('.mini-pick').forEach(el => el.remove());
+      root.querySelectorAll('.mini-pick, .family-legend, .memo').forEach(el => el.remove());
+      const firstHeader = root.querySelector('.col-header.date');
+      if (firstHeader) firstHeader.textContent = '日付';
       return root;
     }
 
     function buildWeekPage(weekStart) {
-      // Temporarily point the live app at this week, render, then clone the result.
       const saved = currentWeekStart;
-      currentWeekStart = weekStart;
+      currentWeekStart = fmtDateInput(getMondayOf(weekStart));
       render();
 
-      const nodes = cloneHeaderFor(weekStart);
       const pageClone = document.getElementById('pageSchedule').cloneNode(true);
       pageClone.removeAttribute('id');
       pageClone.className = 'page-schedule';
       stripForPrint(pageClone);
 
       currentWeekStart = saved;
-      return makePrintSheet([...nodes, pageClone]);
-    }
-
-    function buildTodoPage() {
-      render();
-      const pageClone = document.getElementById('pageTodo').cloneNode(true);
-      pageClone.removeAttribute('id');
-      pageClone.className = 'page-todo';
-      stripForPrint(pageClone);
-      return makePrintSheet([pageClone]);
-    }
-
-    function buildDonePage() {
-      render();
-      const pageClone = document.getElementById('pageDone').cloneNode(true);
-      pageClone.removeAttribute('id');
-      pageClone.className = 'page-todo';
-      stripForPrint(pageClone);
-      return makePrintSheet([pageClone]);
+      return makePrintSheet([makeWeekPrintHeading(fmtDateInput(getMondayOf(weekStart))), pageClone]);
     }
 
     function doPrint() {
-      const wantWeek = document.getElementById('optWeek').checked;
-      const wantTodo = document.getElementById('optTodo').checked;
-      const wantDone = document.getElementById('optDone').checked;
-
-      if (!wantWeek && !wantTodo && !wantDone) {
-        alert('印刷する項目を1つ以上選んでください。');
-        return;
-      }
-
-      const n = Math.max(1, Math.min(12, parseInt(document.getElementById('printWeeksInput').value, 10) || 1));
       const container = document.getElementById('printArea');
       container.innerHTML = '';
 
-      if (wantWeek) {
-        let ws = new Date(currentWeekStart + 'T00:00:00');
-        for (let k = 0; k < n; k++) {
-          container.appendChild(buildWeekPage(fmtDateInput(ws)));
-          ws.setDate(ws.getDate() + 7);
-        }
-      }
-      if (wantTodo) container.appendChild(buildTodoPage());
-      if (wantDone) container.appendChild(buildDonePage());
+      // 印刷は必ず、表示中の日付を含む月曜日始まりの1週間だけ
+      const monday = fmtDateInput(getMondayOf(currentWeekStart));
+      container.appendChild(buildWeekPage(monday));
 
-      render(); // restore the live view to the selected week
+      render();
       window.print();
     }
 
@@ -2497,7 +2682,7 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
       syncLinkedTodosFromMaster();
       return JSON.stringify({
         version: 3,
-        updatedAt: new Date(lastLocalUpdatedAt || Date.now()).toISOString(),
+        updatedAt: new Date().toISOString(),
         weeks: weeksDB,
         todos: todosDB
       }, null, 2);
@@ -2505,7 +2690,7 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
 
     async function pushToGist(silent) {
       readGhInputs();
-      if (!ghCfg.token) { if (!silent) syncMsg('GitHubトークンを入力してください', 'err'); return false; }
+      if (!ghCfg.token) { if (!silent) syncMsg('GitHubトークンを入力してください', 'err'); return; }
 
       if (!silent) syncMsg('クラウドに保存中...');
       const body = {
@@ -2530,7 +2715,7 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
           const t = await res.text();
           syncMsg(`保存に失敗しました (${res.status})。トークンの権限（gist）をご確認ください。`, 'err');
           console.error('gist push failed:', res.status, t);
-          return false;
+          return;
         }
 
         const data = await res.json();
@@ -2542,11 +2727,9 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
         localDirty = false;
         if (pushTimer) { clearTimeout(pushTimer); pushTimer = null; }
         syncMsg('クラウドに保存しました（' + new Date().toLocaleTimeString('ja-JP') + '）', 'ok');
-        return true;
       } catch (e) {
         console.error(e);
         syncMsg('通信に失敗しました。ネット接続をご確認ください。', 'err');
-        return false;
       }
     }
 
@@ -2573,18 +2756,8 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
         }
 
         const parsed = JSON.parse(content);
-        const remoteUpdatedAt = Date.parse(parsed.updatedAt || '') || 0;
-        const localUpdatedAt = Number(localStorage.getItem(LOCAL_UPDATED_KEY) || lastLocalUpdatedAt || 0);
-        if (remoteUpdatedAt && localUpdatedAt && remoteUpdatedAt < localUpdatedAt) {
-          syncMsg('端末側の予定が新しいため、古いクラウドデータの上書きを止めました', 'ok');
-          return;
-        }
         if (parsed.weeks) weeksDB = parsed.weeks;
         if (parsed.todos && Array.isArray(parsed.todos.items)) todosDB = parsed.todos;
-        if (remoteUpdatedAt) {
-          lastLocalUpdatedAt = remoteUpdatedAt;
-          localStorage.setItem(LOCAL_UPDATED_KEY, String(remoteUpdatedAt));
-        }
         normalizeAllEventColors();
         syncLinkedTodosFromMaster();
 
@@ -2640,7 +2813,6 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
     async function autoPullIfReady() {
       readGhInputs();
       if (!ghCfg.token || !ghCfg.gistId || !navigator.onLine || isPulling) return;
-      if (Date.now() < manualSaveLockUntil) return;
       // 未保存・送信待ちの入力がある間は、古いクラウドデータを自動読込しない。
       // 手動の『クラウドから読込』ボタンだけは従来どおり利用できる。
       if (localDirty || pushTimer || saveTimer) return;
@@ -2997,72 +3169,6 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
     };
 
 
-    function commitVisibleWeekFieldsDirectly(){
-      const week=currentWeek();
-
-      document.querySelectorAll('.aligned-event-line').forEach(line=>{
-        const dayIndex=Number(line.dataset.dayIndex);
-        const eventIndex=Number(line.dataset.eventIndex);
-        if(!Number.isInteger(dayIndex)||!Number.isInteger(eventIndex)||!week.days[dayIndex]) return;
-        normalizeEvents(week.days[dayIndex]);
-        const input=line.querySelector('.event-text');
-        const picker=line.querySelector('.color-picker');
-        if(!input) return;
-        week.days[dayIndex].events[eventIndex]={
-          text:input.value,
-          color:(picker&&picker.dataset.color)||line.dataset.color||'white'
-        };
-        syncScheduleFromEvents(week.days[dayIndex]);
-      });
-
-      document.querySelectorAll('.aligned-todo-line').forEach(line=>{
-        const dayIndex=Number(line.dataset.dayIndex);
-        const todoIndex=Number(line.dataset.todoIndex);
-        if(!Number.isInteger(dayIndex)||!Number.isInteger(todoIndex)||!week.days[dayIndex]) return;
-        const day=week.days[dayIndex];
-        while(day.todos.length<4) day.todos.push({checked:false,text:'',todoId:null});
-        const input=line.querySelector('.mini-text');
-        const check=line.querySelector('input[type="checkbox"]');
-        const select=line.querySelector('.mini-pick');
-        const todo=day.todos[todoIndex];
-        todo.text=input?input.value:'';
-        todo.checked=!!(check&&check.checked);
-        if(select&&select.value) todo.todoId=select.value;
-        linkOrCreateTodo(todo);
-      });
-
-      lastUserEditAt=Date.now();
-      lastLocalUpdatedAt=lastUserEditAt;
-      localStorage.setItem(LOCAL_UPDATED_KEY,String(lastLocalUpdatedAt));
-      localDirty=true;
-      persistLocalNow();
-    }
-
-    async function commitCurrentJapaneseInput(){
-      // iPhone/Safariの日本語変換中に保存を押した場合、
-      // 変換前の一部だけがモデルに残ることがあるため、先に入力を確定する。
-      // まず現在画面に見えている値を直接データ本体へ取り込む。
-      commitVisibleWeekFieldsDirectly();
-
-      const active=document.activeElement;
-      if(active && (active.matches('input[type="text"]') || active.matches('textarea'))){
-        active.blur();
-      }
-
-      // iPhoneの日本語変換確定を十分に待つ。
-      await new Promise(resolve=>setTimeout(resolve,300));
-
-      // blur後に確定した最終文字列をもう一度直接取り込む。
-      commitVisibleWeekFieldsDirectly();
-
-      document.querySelectorAll('.todo-item input[type="text"],#memo').forEach(el=>{
-        el.dispatchEvent(new Event('input',{bubbles:true}));
-      });
-
-      await new Promise(resolve=>setTimeout(resolve,50));
-      persistLocalNow();
-    }
-
     async function saveAndSyncAll(){
       const saveBtn=document.getElementById('saveBtn');
       const indicator=document.getElementById('saveIndicator');
@@ -3075,10 +3181,6 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
       indicator.textContent='端末・クラウド・Googleカレンダーへ保存しています…';
 
       try{
-        manualSaveLockUntil=Date.now()+120000;
-        // 日本語変換中の文字列を確定し、画面の最新値をモデルへ反映する。
-        await commitCurrentJapaneseInput();
-
         // 1. 端末内へ保存
         await saveDB();
 
@@ -3089,11 +3191,7 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
             clearTimeout(pushTimer);
             pushTimer=null;
           }
-          const gistOk=await pushToGist(true);
-          if(!gistOk){
-            indicator.textContent='端末には保存しました。クラウド保存に失敗しました';
-            return;
-          }
+          await pushToGist(true);
         }
 
         // 3. Googleカレンダーへ同期
@@ -3146,8 +3244,6 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
     });
     window.addEventListener('storage', e => {
       if (e.key !== WEEKS_KEY && e.key !== TODOS_KEY) return;
-      // 別タブの古い状態で、入力直後の画面を上書きしない。
-      if (Date.now() < manualSaveLockUntil || localDirty || Date.now() - lastUserEditAt < 15000) return;
       try {
         weeksDB = JSON.parse(localStorage.getItem(WEEKS_KEY) || '{}') || {};
         todosDB = JSON.parse(localStorage.getItem(TODOS_KEY) || '{"items":[]}') || {items:[]};

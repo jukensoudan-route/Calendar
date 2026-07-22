@@ -511,120 +511,6 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
   .tabs.bottom-nav,.bottom-nav{display:none!important;}
 }
 </style>
-
-<style id="bottom-nav-v21-color-match">
-/* v21: 下部バー色を週間ページの実画面に合わせる */
-body{padding-bottom:calc(68px + env(safe-area-inset-bottom,0px))!important;}
-.tabs.bottom-nav,
-.bottom-nav{
-  position:fixed!important;
-  left:0!important;
-  right:0!important;
-  bottom:0!important;
-  top:auto!important;
-  z-index:2147483646!important;
-  display:grid!important;
-  grid-template-columns:repeat(6,minmax(0,1fr))!important;
-  grid-template-rows:1fr!important;
-  gap:4px!important;
-  width:100%!important;
-  max-width:none!important;
-  margin:0!important;
-  padding:6px max(8px,env(safe-area-inset-left,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-right,0px))!important;
-  box-sizing:border-box!important;
-  background:#2f9bd3!important;
-  border:0!important;
-  border-radius:0!important;
-  box-shadow:none!important;
-  overflow:hidden!important;
-}
-.tabs.bottom-nav>a,
-.tabs.bottom-nav>button,
-.bottom-nav>a,
-.bottom-nav>button{
-  grid-row:1!important;
-  grid-column:auto!important;
-  display:flex!important;
-  align-items:center!important;
-  justify-content:center!important;
-  width:auto!important;
-  min-width:0!important;
-  min-height:50px!important;
-  margin:0!important;
-  padding:6px 2px!important;
-  box-sizing:border-box!important;
-  border:0!important;
-  border-radius:10px!important;
-  background:transparent!important;
-  color:#ffffff!important;
-  box-shadow:none!important;
-  font:700 12px/1.1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
-  letter-spacing:0!important;
-  text-decoration:none!important;
-  white-space:nowrap!important;
-}
-.tabs.bottom-nav>a.active,
-.tabs.bottom-nav>button.active,
-.bottom-nav>a.active,
-.bottom-nav>button.active{
-  background:#ffffff!important;
-  color:#6a2caf!important;
-  box-shadow:0 2px 6px rgba(0,0,0,.14)!important;
-}
-.tabs.bottom-nav>#bottomSaveBtn,
-.bottom-nav>#bottomSaveBtn{
-  grid-column:1!important;
-  background:#07599c!important;
-  color:#ffffff!important;
-  border:3px solid rgba(255,255,255,.72)!important;
-  border-radius:12px!important;
-  box-shadow:inset 0 -2px 0 rgba(0,0,0,.18)!important;
-  font-weight:800!important;
-}
-.tabs.bottom-nav>#bottomSaveBtn:active,
-.bottom-nav>#bottomSaveBtn:active{
-  background:#06497f!important;
-  color:#ffffff!important;
-}
-@media screen and (max-width:430px){
-  body{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))!important;}
-  .tabs.bottom-nav,.bottom-nav{gap:3px!important;padding:5px max(4px,env(safe-area-inset-left,0px)) calc(5px + env(safe-area-inset-bottom,0px)) max(4px,env(safe-area-inset-right,0px))!important;}
-  .tabs.bottom-nav>a,.tabs.bottom-nav>button,.bottom-nav>a,.bottom-nav>button{min-height:44px!important;font-size:10px!important;padding:5px 0!important;}
-}
-@media print{
-  body{padding-bottom:0!important;}
-  .tabs.bottom-nav,.bottom-nav{display:none!important;}
-}
-</style>
-
-
-<style id="save-button-emerald-final">
-/* 全ページ共通：保存ボタンをエメラルドグリーンに統一 */
-.tabs.bottom-nav>#bottomSaveBtn,
-.bottom-nav>#bottomSaveBtn,
-#bottomSaveBtn{
-  background:#10b981!important;
-  color:#ffffff!important;
-  border-color:#ffffff!important;
-  box-shadow:0 2px 7px rgba(5,120,87,.35)!important;
-}
-.tabs.bottom-nav>#bottomSaveBtn:active,
-.bottom-nav>#bottomSaveBtn:active,
-#bottomSaveBtn:active{
-  background:#059669!important;
-  color:#ffffff!important;
-}
-</style>
-
-
-<style id="bottom-nav-v22-background-unified">
-/* v22: 全ページの下部バー背景を同じ水色に統一 */
-.tabs.bottom-nav,
-.bottom-nav{
-  background:#2f9bd3!important;
-}
-</style>
-
 </head>
 <body>
 <header>
@@ -694,9 +580,6 @@ const WEEKS_KEY='planner2-weeks-db-v1';
 const TODOS_KEY='planner2-todos-db-v1';
 const GH_KEY='planner2-github-cfg-v1';
 const GIST_FILE='route-planner2-data.json';
-const LOCAL_UPDATED_KEY='planner2-local-updated-at-v1';
-let applyingRemote=false;
-let manualSaveLockUntil=0;
 
 let weeksDB={};
 let todosDB={items:[]};
@@ -732,9 +615,6 @@ function saveLocal(){
   syncLinkedTodosFromMaster();
   localStorage.setItem(WEEKS_KEY,JSON.stringify(weeksDB));
   localStorage.setItem(TODOS_KEY,JSON.stringify(todosDB));
-  if(!applyingRemote){
-    localStorage.setItem(LOCAL_UPDATED_KEY,String(Date.now()));
-  }
 }
 function headers(){
   return {'Authorization':'Bearer '+ghCfg.token,'Accept':'application/vnd.github+json','Content-Type':'application/json'};
@@ -913,19 +793,11 @@ async function pull(){
     let content=file.content;
     if(file.truncated&&file.raw_url)content=await(await fetch(file.raw_url)).text();
     const parsed=JSON.parse(content);
-    const remoteUpdatedAt=Date.parse(parsed.updatedAt||'')||0;
-    const localUpdatedAt=Number(localStorage.getItem(LOCAL_UPDATED_KEY)||0);
-    if(remoteUpdatedAt&&localUpdatedAt&&remoteUpdatedAt<localUpdatedAt){
-      setStatus('端末側の予定が新しいため、古いクラウドデータの上書きを止めました','ok');
-      return;
-    }
-    applyingRemote=true;
     if(parsed.weeks)weeksDB=parsed.weeks;
     if(parsed.todos)todosDB=parsed.todos;
-    if(remoteUpdatedAt)localStorage.setItem(LOCAL_UPDATED_KEY,String(remoteUpdatedAt));
     normalizeAllEventColors();
     if(!todosDB||!Array.isArray(todosDB.items)) todosDB={items:[]};
-    saveLocal();applyingRemote=false;render();
+    saveLocal();render();
     setStatus('最新予定を読み込みました：'+new Date().toLocaleTimeString('ja-JP'),'ok');
   }catch(e){console.error(e);setStatus('読込に失敗しました。接続設定を確認してください','err');render()}
   finally{syncing=false}
@@ -935,7 +807,7 @@ async function push(){
   syncing=true;setStatus('保存して同期しています…','syncing');
   normalizeAllEventColors();
   const body={description:'進路相談室 ROUTE - 別ユーザー用週間カレンダー データ',public:false,files:{
-    [GIST_FILE]:{content:JSON.stringify({version:3,updatedAt:new Date(Number(localStorage.getItem(LOCAL_UPDATED_KEY)||Date.now())).toISOString(),weeks:weeksDB,todos:todosDB},null,2)}
+    [GIST_FILE]:{content:JSON.stringify({version:3,updatedAt:new Date().toISOString(),weeks:weeksDB,todos:todosDB},null,2)}
   }};
   try{
     const r=await fetch('https://api.github.com/gists/'+ghCfg.gistId,{method:'PATCH',headers:headers(),body:JSON.stringify(body)});
@@ -1180,7 +1052,6 @@ document.getElementById('prevBtn').onclick=()=>{shown.setMonth(shown.getMonth()-
 document.getElementById('nextBtn').onclick=()=>{shown.setMonth(shown.getMonth()+1);render()};
 
 document.getElementById('bottomSaveBtn').onclick=async()=>{
-  manualSaveLockUntil=Date.now()+120000;
   if(document.getElementById('modal').classList.contains('open')){
     document.getElementById('saveBtn').click();
     return;
@@ -1239,9 +1110,9 @@ window.addEventListener('pageshow',()=>{
     render();
   }
 });
-window.addEventListener('focus',()=>{if(navigator.onLine&&Date.now()>=manualSaveLockUntil)pull()});
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&navigator.onLine&&Date.now()>=manualSaveLockUntil)pull()});
-loadLocal();render();pull();setInterval(()=>{if(document.visibilityState==='visible'&&navigator.onLine&&Date.now()>=manualSaveLockUntil)pull()},30000);
+window.addEventListener('focus',()=>{if(navigator.onLine)pull()});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&navigator.onLine)pull()});
+loadLocal();render();pull();setInterval(()=>{if(document.visibilityState==='visible'&&navigator.onLine)pull()},30000);
 </script>
 
 <script>
