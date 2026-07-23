@@ -2068,6 +2068,57 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
 .week-move-row #prevWeekBtn{grid-column:1!important;}
 .week-move-row #nextWeekBtn{grid-column:2!important;}
 </style>
+
+<style id="print-multipage-v20423-final">
+@media print{
+  html,body{
+    width:148mm!important;
+    height:auto!important;
+    min-height:0!important;
+    overflow:visible!important;
+  }
+  #printArea{
+    display:block!important;
+    width:148mm!important;
+    height:auto!important;
+    overflow:visible!important;
+  }
+  .print-sheet{
+    width:148mm!important;
+    height:210mm!important;
+    min-height:210mm!important;
+    max-height:210mm!important;
+    overflow:hidden!important;
+    page-break-after:always!important;
+    break-after:page!important;
+    page-break-inside:avoid!important;
+    break-inside:avoid-page!important;
+  }
+  .print-sheet:last-child{
+    page-break-after:auto!important;
+    break-after:auto!important;
+  }
+  .page-schedule,
+  .page-schedule .memo,
+  .page-schedule .memo-body-wrap{
+    overflow:hidden!important;
+  }
+  .page-schedule textarea,
+  .page-schedule input,
+  .page-schedule select{
+    overflow:hidden!important;
+    scrollbar-width:none!important;
+  }
+  .page-schedule textarea::-webkit-scrollbar,
+  .page-schedule input::-webkit-scrollbar,
+  .page-schedule select::-webkit-scrollbar{
+    display:none!important;
+    width:0!important;
+    height:0!important;
+  }
+}
+</style>
+
 </head>
 <body>
   <div class="sheet">
