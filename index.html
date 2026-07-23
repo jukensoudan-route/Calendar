@@ -1456,7 +1456,7 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
     width:148mm!important;
     height:210mm!important;
     margin:0!important;
-    padding:5mm 10mm 8mm 5mm!important;
+    padding:5mm 10mm 5mm 5mm!important;
     box-sizing:border-box!important;
     overflow:hidden!important;
     display:flex!important;
@@ -1790,6 +1790,84 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
   }
   .page-schedule .unified-day-row{
     grid-template-columns:18mm minmax(0,1fr) 46mm!important;
+  }
+}
+</style>
+
+<style id="print-layout-auto-v20416">
+/* v2.0.4.16: A5印刷の残り高さをMEMOへ自動配分。下余白5mm固定、罫線5等分 */
+@media print{
+  @page{size:A5 portrait;margin:0!important;}
+  html,body{
+    width:148mm!important;
+    height:210mm!important;
+    margin:0!important;
+    padding:0!important;
+  }
+  .print-sheet{
+    width:148mm!important;
+    height:210mm!important;
+    padding:5mm 10mm 5mm 5mm!important;
+    box-sizing:border-box!important;
+    display:grid!important;
+    grid-template-rows:auto minmax(0,1fr)!important;
+    overflow:hidden!important;
+  }
+  .print-week-heading{
+    grid-row:1!important;
+    margin:0 0 3mm!important;
+  }
+  .page-schedule{
+    grid-row:2!important;
+    display:grid!important;
+    grid-template-rows:auto minmax(0,1fr)!important;
+    row-gap:3mm!important;
+    height:100%!important;
+    min-height:0!important;
+    overflow:hidden!important;
+  }
+  .page-schedule .content-row{
+    grid-row:1!important;
+    margin:0!important;
+    min-height:0!important;
+  }
+  .page-schedule .memo{
+    grid-row:2!important;
+    width:100%!important;
+    max-width:none!important;
+    height:auto!important;
+    min-height:0!important;
+    margin:0!important;
+    display:grid!important;
+    grid-template-rows:8mm minmax(0,1fr)!important;
+    align-self:stretch!important;
+    overflow:hidden!important;
+    box-sizing:border-box!important;
+  }
+  .page-schedule .memo-header{
+    height:8mm!important;
+    min-height:8mm!important;
+  }
+  .page-schedule .memo-body-wrap{
+    display:block!important;
+    height:auto!important;
+    min-height:0!important;
+    overflow:hidden!important;
+  }
+  .page-schedule .memo textarea{
+    width:100%!important;
+    height:100%!important;
+    min-height:0!important;
+    padding:0 3mm!important;
+    box-sizing:border-box!important;
+    border:0!important;
+    resize:none!important;
+    line-height:normal!important;
+    background-color:#fff!important;
+    background-image:linear-gradient(to bottom,transparent calc(100% - .25mm),#d9e3ea calc(100% - .25mm),#d9e3ea 100%)!important;
+    background-size:100% 20%!important;
+    background-repeat:repeat-y!important;
+    background-position:0 0!important;
   }
 }
 </style>
