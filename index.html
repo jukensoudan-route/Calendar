@@ -1537,9 +1537,11 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
   .page-schedule .col-header.todo{width:46mm!important;flex:none!important;border-right:0!important;}
   .page-schedule .table-body{display:block!important;}
   .page-schedule .memo{
-    width:100%!important;
+    width:66.666%!important;
+    max-width:66.666%!important;
     display:flex!important;
     flex-direction:column!important;
+    align-self:flex-start!important;
     margin-top:3mm!important;
     border:.35mm solid #c7d2dc!important;
     border-radius:2mm!important;
@@ -1579,11 +1581,13 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
     width:100%!important;
     height:100%!important;
     min-height:0!important;
-    padding:2mm 3mm!important;
+    padding:2mm 3mm 0!important;
     box-sizing:border-box!important;
     border:0!important;
     resize:none!important;
-    background:repeating-linear-gradient(to bottom,#fff,#fff 5.8mm,#d9e3ea 5.8mm,#d9e3ea 6mm)!important;
+    background-color:#fff!important;
+    background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 5.6mm,#d9e3ea 5.6mm,#d9e3ea 6mm)!important;
+    background-size:100% 6mm!important;
     color:#23303b!important;
     font-size:8pt!important;
     line-height:6mm!important;
