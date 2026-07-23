@@ -1537,19 +1537,20 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
   .page-schedule .col-header.todo{width:46mm!important;flex:none!important;border-right:0!important;}
   .page-schedule .table-body{display:block!important;}
   .page-schedule .memo{
-    width:66.666%!important;
-    max-width:66.666%!important;
+    width:100%!important;
+    max-width:none!important;
     display:flex!important;
     flex-direction:column!important;
-    align-self:flex-start!important;
+    align-self:stretch!important;
     margin-top:3mm!important;
     border:.35mm solid #c7d2dc!important;
     border-radius:2mm!important;
     overflow:hidden!important;
     box-sizing:border-box!important;
     background:#fff!important;
-    flex:1 1 auto!important;
-    min-height:0!important;
+    flex:none!important;
+    height:38mm!important;
+    min-height:38mm!important;
   }
   .page-schedule .memo-header{
     display:flex!important;
@@ -1572,21 +1573,22 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
   .page-schedule .memo-body-wrap{
     display:block!important;
     flex:1 1 auto!important;
-    min-height:0!important;
+    min-height:30mm!important;
+    height:30mm!important;
     border:0!important;
     background:#fff!important;
   }
   .page-schedule .memo textarea{
     display:block!important;
     width:100%!important;
-    height:100%!important;
-    min-height:0!important;
-    padding:2mm 3mm 0!important;
+    height:30mm!important;
+    min-height:30mm!important;
+    padding:0 3mm!important;
     box-sizing:border-box!important;
     border:0!important;
     resize:none!important;
     background-color:#fff!important;
-    background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 5.6mm,#d9e3ea 5.6mm,#d9e3ea 6mm)!important;
+    background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 5.8mm,#d9e3ea 5.8mm,#d9e3ea 6mm)!important;
     background-size:100% 6mm!important;
     color:#23303b!important;
     font-size:8pt!important;
