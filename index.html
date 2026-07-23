@@ -1419,7 +1419,7 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
 </style>
 
 <style id="weekly-print-v204-final">
-/* v2.0.4.7: 週間印刷専用・A5縦・メモ欄追加 */
+/* v2.0.4.12: 週間印刷・行高均等拡張・下余白8mm */
 .datebox{
   display:grid!important;
   grid-template-columns:minmax(0,1fr) 118px!important;
@@ -1456,7 +1456,7 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
     width:148mm!important;
     height:210mm!important;
     margin:0!important;
-    padding:5mm 10mm 5mm 5mm!important;
+    padding:5mm 10mm 8mm 5mm!important;
     box-sizing:border-box!important;
     overflow:hidden!important;
     display:flex!important;
@@ -1607,9 +1607,9 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
     display:grid!important;
     grid-template-columns:23mm minmax(0,1fr) 46mm!important;
     width:100%!important;
-    height:18mm!important;
-    min-height:18mm!important;
-    max-height:18mm!important;
+    height:19mm!important;
+    min-height:19mm!important;
+    max-height:19mm!important;
     overflow:hidden!important;
     border-bottom:.25mm solid #c7d2dc!important;
     background:#fff!important;
@@ -1623,7 +1623,7 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
   .page-schedule .unified-day-row:has(.unified-day-label.sun){box-shadow:inset 1mm 0 0 #e31c23!important;}
   .page-schedule .unified-day-label{
     width:auto!important;
-    height:18mm!important;
+    height:19mm!important;
     min-width:0!important;
     padding:.8mm!important;
     border-right:.25mm solid #c7d2dc!important;
@@ -1643,9 +1643,9 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
   .page-schedule .aligned-schedule,
   .page-schedule .aligned-todo{
     display:grid!important;
-    grid-template-rows:repeat(4,4.1mm)!important;
+    grid-template-rows:repeat(4,4.35mm)!important;
     align-content:start!important;
-    height:18mm!important;
+    height:19mm!important;
     min-width:0!important;
     padding:.7mm 1.6mm!important;
     box-sizing:border-box!important;
@@ -1655,8 +1655,8 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
   .page-schedule .aligned-schedule{border-right:.25mm solid #c7d2dc!important;}
   .page-schedule .aligned-event-line,
   .page-schedule .aligned-todo-line{
-    height:4.1mm!important;
-    min-height:4.1mm!important;
+    height:4.35mm!important;
+    min-height:4.35mm!important;
     display:flex!important;
     align-items:center!important;
     gap:1.2mm!important;
@@ -1712,6 +1712,86 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
 }
 </style>
 
+
+<style id="date-column-narrow-v20413">
+/* v2.0.4.13: 入力画面・印刷画面の日付列を縮小し、予定列を拡張 */
+@media screen {
+  .unified-day-row{
+    grid-template-columns:44px minmax(0,1fr) 128px!important;
+  }
+  .unified-day-label{
+    width:auto!important;
+    min-width:0!important;
+    padding-left:1px!important;
+    padding-right:1px!important;
+  }
+  .col-header.date{
+    width:44px!important;
+    min-width:44px!important;
+    flex:0 0 44px!important;
+  }
+  .col-header.todo{
+    width:128px!important;
+    min-width:128px!important;
+    flex:0 0 128px!important;
+  }
+}
+@media screen and (max-width:700px){
+  .unified-day-row{
+    grid-template-columns:54px minmax(0,1fr) 34%!important;
+  }
+  .col-header.date{
+    width:54px!important;
+    min-width:54px!important;
+    flex-basis:54px!important;
+  }
+  .col-header.todo{
+    width:34%!important;
+    min-width:0!important;
+    flex-basis:34%!important;
+  }
+  .unified-day-label .date-num{font-size:13px!important;}
+  .unified-day-label .dow-jp{font-size:8px!important;}
+}
+@media screen and (max-width:390px){
+  .unified-day-row{
+    grid-template-columns:50px minmax(0,1fr) 35%!important;
+  }
+  .col-header.date{
+    width:50px!important;
+    min-width:50px!important;
+    flex-basis:50px!important;
+  }
+  .col-header.todo{
+    width:35%!important;
+    flex-basis:35%!important;
+  }
+}
+@media print{
+  .page-schedule .table-header{
+    display:grid!important;
+    grid-template-columns:18mm minmax(0,1fr) 46mm!important;
+  }
+  .page-schedule .col-header.date{
+    width:18mm!important;
+    min-width:18mm!important;
+    flex:none!important;
+  }
+  .page-schedule .col-header.schedule{
+    width:auto!important;
+    min-width:0!important;
+    flex:none!important;
+  }
+  .page-schedule .col-header.todo{
+    width:46mm!important;
+    min-width:46mm!important;
+    flex:none!important;
+  }
+  .page-schedule .unified-day-row{
+    grid-template-columns:18mm minmax(0,1fr) 46mm!important;
+  }
+}
+</style>
 </head>
 <body>
   <div class="sheet">
