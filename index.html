@@ -1548,8 +1548,8 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
     overflow:hidden!important;
     box-sizing:border-box!important;
     background:#fff!important;
-    flex:none!important;
-    height:38mm!important;
+    flex:1 1 auto!important;
+    height:auto!important;
     min-height:38mm!important;
   }
   .page-schedule .memo-header{
@@ -1571,18 +1571,19 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
     line-height:1!important;
   }
   .page-schedule .memo-body-wrap{
-    display:block!important;
+    display:flex!important;
     flex:1 1 auto!important;
     min-height:30mm!important;
-    height:30mm!important;
+    height:auto!important;
     border:0!important;
     background:#fff!important;
   }
   .page-schedule .memo textarea{
     display:block!important;
     width:100%!important;
-    height:30mm!important;
+    height:100%!important;
     min-height:30mm!important;
+    flex:1 1 auto!important;
     padding:0 3mm!important;
     box-sizing:border-box!important;
     border:0!important;
