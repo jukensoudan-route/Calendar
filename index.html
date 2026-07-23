@@ -1422,15 +1422,35 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
 /* v2.0.4.12: 週間印刷・行高均等拡張・下余白8mm */
 .datebox{
   display:grid!important;
-  grid-template-columns:minmax(0,1fr) 118px!important;
+  grid-template-columns:minmax(0,1fr) 184px!important;
   gap:10px!important;
   align-items:stretch!important;
 }
 .datebox .field.range{min-width:0!important;}
+.print-controls{
+  display:grid;
+  grid-template-columns:70px minmax(0,1fr);
+  gap:6px;
+  align-items:stretch;
+  min-width:0;
+}
+.print-week-count{
+  width:100%;
+  min-width:0;
+  border:1px solid #c8dae0;
+  border-radius:8px;
+  background:#fff;
+  color:#0d4f8b;
+  font:700 12px/1.2 inherit;
+  text-align:center;
+  padding:7px 4px;
+  cursor:pointer;
+}
+.print-week-count:focus{outline:2px solid rgba(36,145,214,.22);outline-offset:1px;}
 .top-print-btn{
   width:100%;
   align-self:stretch;
-  min-width:118px;
+  min-width:0;
   border:1px solid #c8dae0;
   border-radius:8px;
   padding:7px 14px;
@@ -1444,9 +1464,11 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
 .top-print-btn:hover{background:#f5fbff;border-color:#9fc2dd;}
 .top-print-btn:active{transform:translateY(1px);background:#edf7ff;}
 @media screen and (max-width:700px){
-  .datebox{display:grid!important;grid-template-columns:minmax(0,1fr) 96px!important;width:100%!important;gap:7px!important;align-items:stretch!important;}
+  .datebox{display:grid!important;grid-template-columns:minmax(0,1fr) 144px!important;width:100%!important;gap:7px!important;align-items:stretch!important;}
   .datebox .field{min-width:0!important;}
-  .top-print-btn{min-width:96px!important;padding:8px 9px!important;font-size:11px!important;}
+  .print-controls{grid-template-columns:58px minmax(0,1fr)!important;gap:5px!important;}
+  .print-week-count{font-size:11px!important;padding:8px 2px!important;}
+  .top-print-btn{min-width:0!important;padding:8px 7px!important;font-size:11px!important;}
 }
 
 @media print{
@@ -1892,7 +1914,19 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
             <button id="nextWeekBtn" class="week-nav-btn" type="button">次の週 →</button>
           </div>
         </div>
-        <button id="printBtn" class="top-print-btn" type="button">印刷</button>
+        <div class="print-controls" aria-label="印刷設定">
+          <select id="printWeekCount" class="print-week-count" aria-label="印刷する週の数">
+            <option value="1" selected>1週</option>
+            <option value="2">2週</option>
+            <option value="3">3週</option>
+            <option value="4">4週</option>
+            <option value="5">5週</option>
+            <option value="6">6週</option>
+            <option value="8">8週</option>
+            <option value="12">12週</option>
+          </select>
+          <button id="printBtn" class="top-print-btn" type="button">印刷</button>
+        </div>
       </div>
     </div>
     <div class="accent-bar"></div>
@@ -2704,6 +2738,17 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
       currentWeek().memo = e.target.value;
       scheduleSave();
     });
+    const PRINT_WEEK_COUNT_KEY = 'planner-print-week-count-v1';
+    const printWeekCountEl = document.getElementById('printWeekCount');
+    if (printWeekCountEl) {
+      const savedPrintCount = localStorage.getItem(PRINT_WEEK_COUNT_KEY);
+      if ([...printWeekCountEl.options].some(o => o.value === savedPrintCount)) {
+        printWeekCountEl.value = savedPrintCount;
+      }
+      printWeekCountEl.addEventListener('change', () => {
+        localStorage.setItem(PRINT_WEEK_COUNT_KEY, printWeekCountEl.value);
+      });
+    }
     document.getElementById('printBtn').addEventListener('click', doPrint);
     document.getElementById('tabSchedule').addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); switchTab('schedule'); });
     document.getElementById('tabTodo').addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); switchTab('todo'); });
@@ -2789,9 +2834,16 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
       const container = document.getElementById('printArea');
       container.innerHTML = '';
 
-      // 印刷は必ず、表示中の日付を含む月曜日始まりの1週間だけ
-      const monday = fmtDateInput(getMondayOf(currentWeekStart));
-      container.appendChild(buildWeekPage(monday));
+      // 表示中の週を1週目として、選択した週数を月曜日始まりで連続印刷する。
+      const countSelect = document.getElementById('printWeekCount');
+      const weekCount = Math.max(1, Math.min(12, Number(countSelect?.value) || 1));
+      const firstMonday = getMondayOf(currentWeekStart);
+
+      for (let i = 0; i < weekCount; i++) {
+        const monday = new Date(firstMonday);
+        monday.setDate(firstMonday.getDate() + (i * 7));
+        container.appendChild(buildWeekPage(fmtDateInput(monday)));
+      }
 
       render();
       window.print();
