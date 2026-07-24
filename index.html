@@ -2300,7 +2300,8 @@ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))!important;}
   <script>
     const DOW_JP = ['日','月','火','水','木','金','土'];
     const WEEKS_KEY = 'planner2-weeks-db-v1';   // { "2026-07-13": { days:[...], memo:"" }, ... }
-    const TODOS_KEY = 'planner2-todos-db-v1';   // { items: [ {id, text, done} ] }
+    const TODOS_KEY = 'planner2-todos-db-v1';
+    const WEEKS_BACKUP_KEY = 'planner2-weeks-db-backup-v1';   // { items: [ {id, text, done} ] }
 
     function pad(n) { return n < 10 ? '0' + n : '' + n; }
 
@@ -2499,7 +2500,8 @@ function linkOrCreateTodo(todo){
           schedule: '',
           todos: Array.from({length: 4}, () => ({ checked: false, text: '', todoId: null }))
         })),
-        memo: ''
+        memo: '',
+        updatedAt: 0
       };
     }
 
@@ -2516,6 +2518,23 @@ function linkOrCreateTodo(todo){
     let isPulling = false;
     // 入力後、クラウド保存が完了するまでは自動読込で上書きしない
     let localDirty = false;
+
+    function touchCurrentWeek() {
+      const w = currentWeek();
+      w.updatedAt = Date.now();
+      return w;
+    }
+
+    function mergeWeeksByUpdatedAt(localWeeks, remoteWeeks) {
+      const merged = Object.assign({}, remoteWeeks || {});
+      Object.entries(localWeeks || {}).forEach(([key, localWeek]) => {
+        const remoteWeek = merged[key];
+        const localTime = Number(localWeek && localWeek.updatedAt) || 0;
+        const remoteTime = Number(remoteWeek && remoteWeek.updatedAt) || 0;
+        if (!remoteWeek || localTime >= remoteTime) merged[key] = localWeek;
+      });
+      return merged;
+    }
 
     function currentWeek() {
       if (!weeksDB[currentWeekStart]) weeksDB[currentWeekStart] = emptyWeek();
@@ -2550,8 +2569,11 @@ function linkOrCreateTodo(todo){
       // window.storage が使える環境では、そちらの新しい内容を上書きで読み込む。
       try {
         const localWeeks = localStorage.getItem(WEEKS_KEY);
+        const backupWeeks = localStorage.getItem(WEEKS_BACKUP_KEY);
         const localTodos = localStorage.getItem(TODOS_KEY);
-        if (localWeeks) weeksDB = JSON.parse(localWeeks) || {};
+        const mainWeeks = localWeeks ? (JSON.parse(localWeeks) || {}) : {};
+        const backup = backupWeeks ? (JSON.parse(backupWeeks) || {}) : {};
+        weeksDB = mergeWeeksByUpdatedAt(mainWeeks, backup);
         if (localTodos) todosDB = JSON.parse(localTodos) || { items: [] };
       } catch (e) {
         console.error('local load error:', e);
@@ -2561,7 +2583,7 @@ function linkOrCreateTodo(todo){
         if (window.storage && typeof window.storage.get === 'function') {
           try {
             const w = await window.storage.get(WEEKS_KEY, false);
-            if (w && w.value) weeksDB = JSON.parse(w.value) || weeksDB;
+            if (w && w.value) weeksDB = mergeWeeksByUpdatedAt(weeksDB, JSON.parse(w.value) || {});
           } catch (e) { /* window.storage にデータがない場合は localStorage を使用 */ }
           try {
             const t = await window.storage.get(TODOS_KEY, false);
@@ -2583,11 +2605,14 @@ function linkOrCreateTodo(todo){
     function persistLocalNow() {
       normalizeAllEventColors();
       syncLinkedTodosFromMaster();
-      localStorage.setItem(WEEKS_KEY, JSON.stringify(weeksDB));
+      const weeksJson = JSON.stringify(weeksDB);
+      localStorage.setItem(WEEKS_BACKUP_KEY, weeksJson);
+      localStorage.setItem(WEEKS_KEY, weeksJson);
       localStorage.setItem(TODOS_KEY, JSON.stringify(todosDB));
     }
 
     function scheduleSave() {
+      touchCurrentWeek();
       lastUserEditAt = Date.now();
       localDirty = true;
       const indicator = document.getElementById('saveIndicator');
@@ -2957,20 +2982,18 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
     }
 
     document.getElementById('endDateInput').addEventListener('change', (e) => {
-      const endD = new Date(e.target.value + 'T00:00:00');
-      const startD = new Date(endD);
-      startD.setDate(endD.getDate() - 6);
-      currentWeekStart = fmtDateInput(startD);
+      try { persistLocalNow(); } catch (err) { console.error('pre-navigation save error', err); }
+      const selected = e.target.value;
+      currentWeekStart = fmtDateInput(getMondayOf(selected));
       render();
-      scheduleSave();
     });
 
     function moveWeek(days) {
+      try { persistLocalNow(); } catch (err) { console.error('pre-navigation save error', err); }
       const d = new Date(currentWeekStart + 'T00:00:00');
       d.setDate(d.getDate() + days);
-      currentWeekStart = fmtDateInput(d);
+      currentWeekStart = fmtDateInput(getMondayOf(fmtDateInput(d)));
       render();
-      scheduleSave();
     }
 
     document.getElementById('prevWeekBtn').addEventListener('click',()=>moveWeek(-7));
@@ -3221,7 +3244,7 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
         }
 
         const parsed = JSON.parse(content);
-        if (parsed.weeks) weeksDB = parsed.weeks;
+        if (parsed.weeks) weeksDB = mergeWeeksByUpdatedAt(weeksDB, parsed.weeks);
         if (parsed.todos && Array.isArray(parsed.todos.items)) todosDB = parsed.todos;
         normalizeAllEventColors();
         syncLinkedTodosFromMaster();
@@ -3710,7 +3733,7 @@ function getHolidayName(d){ return japaneseHolidays(d.getFullYear()).get(dateKey
     window.addEventListener('storage', e => {
       if (e.key !== WEEKS_KEY && e.key !== TODOS_KEY) return;
       try {
-        weeksDB = JSON.parse(localStorage.getItem(WEEKS_KEY) || '{}') || {};
+        weeksDB = mergeWeeksByUpdatedAt(weeksDB, JSON.parse(localStorage.getItem(WEEKS_KEY) || '{}') || {});
         todosDB = JSON.parse(localStorage.getItem(TODOS_KEY) || '{"items":[]}') || {items:[]};
         syncLinkedTodosFromMaster();
         render();
